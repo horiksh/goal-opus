@@ -1,0 +1,95 @@
+{
+  "goal": "Distill the decision ladder + completeness guard + over/under-engineering verifier lens into the goal loop, text-only, no plugin/hooks",
+  "created": "2026-07-08",
+  "max_iterations": 5,
+  "status": "success",
+  "criteria": [
+    {
+      "id": "C1",
+      "statement": "goal-maker.md RULES contain the full 7-rung ladder verbatim from GOAL.md, in priority order, with the instruction to justify any skipped rung",
+      "verify": "Read .claude/agents/goal-maker.md; confirm all 7 rungs appear verbatim, ordered 1-7, plus a justify-skips instruction",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C1",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C1"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "statement": "the goal-opus maker packet and the maker return contract include a completeness counter-guard: per criteria.json id, an explicit satisfied/not-satisfied line is required before the maker may declare work ready",
+      "verify": "Read .claude/skills/goal-opus/SKILL.md (Orchestrator->goal-maker packet) and .claude/agents/goal-maker.md return format; confirm the per-id satisfied/not-satisfied enumeration is required in both",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C2",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C2"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "statement": "goal-verifier.md documents an over-engineering / under-implementation lens that fails artifacts in either direction, naming the dropped-input-validation case as canonical",
+      "verify": "Read .claude/agents/goal-verifier.md; confirm the lens covers (a) unrequested complexity and (b) dropped rubric-mandated edge/empty/error/validation states, and names the input-validation example",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C3",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C3"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "statement": "the new lens correctly classifies the three fixtures: overbuilt.py -> fail (over-engineered), missing_validation.py -> fail (under-implemented), minimal_ok.py -> pass",
+      "verify": "Fixtures exist under goals/2026-07-08-decision-ladder/fixtures/ with a FIXTURES.md stating each file's task statement; the verifier applies the lens text from goal-verifier.md to each fixture and reports the three classifications; all three must match expected",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C4",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C4"
+        }
+      ]
+    },
+    {
+      "id": "C5",
+      "statement": "the change is text-only: no hook registered, no MCP server added, only .md files under .claude/ and this goal's workdir modified",
+      "verify": "git status --porcelain: every modified/added path is a .md file under .claude/agents/, .claude/skills/goal-opus/, or goals/2026-07-08-decision-ladder/ (fixtures .py allowed under the workdir); confirm no changes to any settings.json or hooks config",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C5",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C5"
+        }
+      ]
+    }
+  ],
+  "banned_outcomes": [
+    {
+      "id": "B1",
+      "statement": "this goal's criteria.json was modified by the maker",
+      "verify": "git diff goals/2026-07-08-decision-ladder/criteria.json must be empty"
+    },
+    {
+      "id": "B2",
+      "statement": "any existing append-only entry (Known failure modes / Anti-patterns / Eval suite / Run log) was deleted or reworded",
+      "verify": "git diff .claude/skills/goal-opus/SKILL.md shows no deleted/modified lines inside those four sections (additions elsewhere are fine)"
+    },
+    {
+      "id": "B3",
+      "statement": "a hook or MCP server was registered",
+      "verify": "git status shows no .claude/settings*.json or hook-config changes; grep new text for 'PreToolUse'/'hooks:' frontmatter additions — none may appear"
+    }
+  ]
+}

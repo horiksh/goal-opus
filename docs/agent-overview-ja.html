@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>エージェントシステム概要</title>
+<style>
+  @page { size: 320mm 180mm; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Yu Gothic UI", "Meiryo", "Segoe UI", sans-serif; color: #1a2332; }
+  .slide { width: 320mm; height: 180mm; page-break-after: always; padding: 12mm 14mm; position: relative; background: #fafbfd; overflow: hidden; }
+  .slide:last-child { page-break-after: avoid; }
+  .kicker { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #5b6b85; font-weight: 600; }
+  h1 { font-size: 28px; font-weight: 700; margin: 2mm 0 1.5mm; letter-spacing: -0.3px; }
+  .sub { font-size: 13px; color: #5b6b85; margin-bottom: 6mm; }
+  .accent { color: #0f6b62; }
+  .footer { position: absolute; bottom: 7mm; left: 14mm; right: 14mm; display: flex; justify-content: space-between; font-size: 9.5px; color: #8593a8; border-top: 1px solid #e3e8f0; padding-top: 2.5mm; }
+
+  /* slide 1: loop diagram */
+  .loop { display: flex; align-items: stretch; gap: 4mm; margin-bottom: 5mm; }
+  .stage { flex: 1; background: #fff; border: 1.5px solid #d5dce8; border-radius: 10px; padding: 4mm 4mm 3.5mm; position: relative; }
+  .stage h3 { font-size: 13.5px; margin-bottom: 1.5mm; }
+  .stage .who { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #0f6b62; margin-bottom: 1.5mm; }
+  .stage p { font-size: 10px; line-height: 1.55; color: #3d4a5f; }
+  .stage.verifier { border-color: #b0503c; }
+  .stage.verifier .who { color: #b0503c; }
+  .arrow { align-self: center; font-size: 20px; color: #9aa8bd; flex: 0 0 auto; }
+  .gateband { display: flex; gap: 4mm; }
+  .gatebox { flex: 1.2; background: #103c38; color: #eef5f4; border-radius: 10px; padding: 4mm; }
+  .gatebox h3 { font-size: 13px; margin-bottom: 1.5mm; color: #8fd6cc; }
+  .gatebox p { font-size: 10px; line-height: 1.6; color: #cfe3e0; }
+  .writeback { flex: 1.8; background: #fff7ec; border: 1.5px solid #e3b268; border-radius: 10px; padding: 4mm; }
+  .writeback h3 { font-size: 13px; color: #8a5d13; margin-bottom: 1.5mm; }
+  .writeback p { font-size: 10px; line-height: 1.6; color: #5c4a26; }
+  .invariants { margin-top: 5mm; display: flex; gap: 3mm; }
+  .inv { flex: 1; font-size: 9.5px; line-height: 1.5; background: #eef1f7; border-radius: 7px; padding: 2.5mm 3mm; color: #33415a; }
+  .inv b { color: #17233a; }
+
+  /* slide 2: workflow steps */
+  .step { display: flex; gap: 5mm; background: #fff; border: 1.5px solid #d5dce8; border-radius: 10px; padding: 3.5mm 4.5mm; margin-bottom: 3.2mm; align-items: baseline; }
+  .num { flex: 0 0 9mm; font-size: 21px; font-weight: 800; color: #0f6b62; }
+  .cmd { flex: 0 0 92mm; font-family: Consolas, "MS Gothic", monospace; font-size: 12px; font-weight: 600; color: #17233a; }
+  .cmd small { display: block; font-family: "Yu Gothic UI", "Meiryo", sans-serif; font-weight: 400; font-size: 10px; color: #5b6b85; margin-top: 0.8mm; }
+  .you { flex: 1; font-size: 10.5px; line-height: 1.55; color: #3d4a5f; }
+  .you b { color: #b0503c; }
+
+  /* slide 3: cheat sheet */
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
+  .card { background: #fff; border: 1.5px solid #d5dce8; border-radius: 10px; padding: 4mm; }
+  .card h3 { font-size: 12.5px; margin-bottom: 2mm; color: #0f6b62; }
+  .card ul { list-style: none; }
+  .card li { font-size: 10px; line-height: 1.55; color: #3d4a5f; padding-left: 4mm; position: relative; margin-bottom: 1.6mm; }
+  .card li::before { content: "▸"; position: absolute; left: 0; color: #9aa8bd; }
+  .card li b { color: #17233a; }
+  .warn { background: #fff3f0; border-color: #d9a08f; }
+  .warn h3 { color: #b0503c; }
+</style>
+</head>
+<body>
+
+<!-- ===================== スライド 1 ===================== -->
+<div class="slide">
+  <div class="kicker">エージェントホーム · D:\horil\agent</div>
+  <h1>エージェントの仕組み — <span class="accent">自己改善するゴールループ</span></h1>
+  <div class="sub">固定された1つのモデル（Opus 4.8）と、分離された3つの役割。賢くなるのはモデルではなく——<b>その周囲のファイル群</b>。</div>
+
+  <div class="loop">
+    <div class="stage">
+      <div class="who">統括役 · Orchestrator</div>
+      <h3>1 · まず「完了」を定義</h3>
+      <p><b>criteria.json</b> — すべての基準は <b>failing</b> から始まり、各項目が実行可能な検証手順を持つ。禁止結果（即失格）と反復回数の上限つき。<b>ここであなたが承認</b>——以後ロックされる。</p>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="who">実装役 · Maker</div>
+      <h3>2 · 実装</h3>
+      <p>コードを書く前に7段の<b>意思決定ラダー</b>（YAGNI → 既存コード → 標準ライブラリ → … → 必要最小限の実装）を上から辿り、返答前に<b>全基準を satisfied / not-satisfied で列挙</b>する義務。自己採点はせず、ルーブリックにも触れない。</p>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage verifier">
+      <div class="who">検証役 · Verifier</div>
+      <h3>3 · 敵対的検証</h3>
+      <p>まっさらなコンテキスト、<b>Write/Edit ツールなし</b>、実装役のメモは見ない。全検証手順を実行し、<b>反証を試み</b>、過剰設計と実装不足の両方向で不合格にできる。UI は<b>再取得したスクリーンショットを見て</b>判定する。</p>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="who">統括役 · Orchestrator</div>
+      <h3>4 · ゲート</h3>
+      <p>基準を passing に変えられるのは統括役だけ——それも検証役の<b>証拠つき合格</b>があるときのみ。不合格 → 構造化された差分を実装役へ返す。全合格 → 完了。上限到達 → 偽りの成功ではなく、正直な<b>中断（abort）</b>。</p>
+    </div>
+  </div>
+
+  <div class="gateband">
+    <div class="gatebox">
+      <h3>5 · 書き戻し — 全ラン必須</h3>
+      <p>成功・中断・キャンセルを問わず：教訓を一般則へ蒸留 → <b>STATE.md</b>。確認済みの失敗はスキル自身の <b>Known failure modes</b> に追記。そしてすべてを git にコミット。</p>
+    </div>
+    <div class="writeback">
+      <h3>なぜ複利で効くのか</h3>
+      <p>次のランは<b>前のランの学びを読んでから</b>始まる——一般則は毎回実装役のパケットに同梱され、失敗モードはルーブリック作成前に参照される。誤った教訓は日付つきエントリとして訂正され、自己編集はすべてレビュー可能な git diff。これまで6ラン；ループはすでに自分の思い込みを1つ発見し、自ら修正した。</p>
+    </div>
+  </div>
+
+  <div class="invariants">
+    <div class="inv"><b>作る者は採点しない。</b>実装役が自分の成果を判定することはない。</div>
+    <div class="inv"><b>Default-FAIL。</b>実行された証拠なしに合格は存在しない。</div>
+    <div class="inv"><b>書き残すまで終わらない。</b>書き戻しのないランは未完了。</div>
+    <div class="inv"><b>視覚物は「見て」検証。</b>スクリーンショットで判定、文章では判定しない。</div>
+    <div class="inv"><b>ホーム ≠ ターゲット。</b>製品コードは各ゴールのターゲットリポジトリへ。</div>
+  </div>
+
+  <div class="footer"><span>自己改善エージェントシステム · goal-opus ループ</span><span>1 / 3</span></div>
+</div>
+
+<!-- ===================== スライド 2 ===================== -->
+<div class="slide">
+  <div class="kicker">あなたのワークフロー</div>
+  <h1>アイデアから出荷まで — <span class="accent">コマンドの流れ</span></h1>
+  <div class="sub">すべてエージェントホームで開いたセッションから実行。手作業は「あなたの好み」と「承認」だけ——それが設計です。</div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="num">1</div>
+      <div class="cmd">/prd &lt;プロダクトのアイデア&gt;<small>徹底的な検証済みリサーチを強制するなら /deep-prd</small></div>
+      <div class="you">ベストプラクティスと類似ソフトを調査し、<b>あなたが言葉にしていない要件</b>を掘り起こし、PRD ＋ シード済みルーブリックを生成。<b>あなた：</b>スコープ質問（最大4つ）に答える。</div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div class="cmd">/design-direction &lt;product&gt;, target: &lt;path&gt;<small>UI のあるプロダクトのみ — 最初の UI スライスの前に実行</small></div>
+      <div class="you">対話でテイストを固めるセッション → トークン・参照画像・禁止ビジュアルを凍結。<b>あなた：</b>好きな UI のスクショを持参し、その場で反応し、方向をひとつ選ぶ。</div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div class="cmd">/goal-opus &lt;PRD のフェーズ1を実装&gt;, target: &lt;path&gt;<small>ロードマップ1フェーズ = 1ゴールラン（criteria.seed.json を使用）</small></div>
+      <div class="you">スライド1のループが「完了」か「正直な中断」まで回る。<b>あなた：ルーブリックを承認——これがハンドル。</b>基準・禁止結果・反復上限をここで調整する。</div>
+    </div>
+    <div class="step">
+      <div class="num">4</div>
+      <div class="cmd">フェーズごとに繰り返し · スライスをデモ<small>フェーズゲートの通過が次フェーズの開始条件</small></div>
+      <div class="you">デモでは、スクリーンショットに写らないものをフィードバック：<b>モーションの感触、操作時の性能</b>。ループが正直に判定できない唯一の領域。</div>
+    </div>
+    <div class="step">
+      <div class="num">5</div>
+      <div class="cmd">最終レポートを読む<small>基準の一覧表 · 使ったイテレーション数 · 学びとその書き戻し先</small></div>
+      <div class="you"><b>aborted</b> の判定は信頼してよい——偽りの成功を拒んだ証拠。学びはすでにコミット済みで、次のランはより賢く始まる。</div>
+    </div>
+  </div>
+
+  <div class="footer"><span>/prd → /design-direction → /goal-opus をフェーズごとに</span><span>2 / 3</span></div>
+</div>
+
+<!-- ===================== スライド 3 ===================== -->
+<div class="slide">
+  <div class="kicker">運用マニュアル</div>
+  <h1>経験則 — <span class="accent">効率よく使うために</span></h1>
+  <div class="sub">システムをドリフトさせず、複利で効かせ続けるための習慣。</div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>ホームは1つ、ターゲットは多数</h3>
+      <ul>
+        <li>このリポジトリを<b>プロジェクトごとにクローンしない</b>——自己改善スキルが分岐し、学習が霧散する。</li>
+        <li>ビルド系ゴールは必ず <b>target: &lt;path&gt;</b> を宣言。製品コードと専用 STATE.md はそちらに置く。</li>
+        <li>ホームに置くのはシステム・記憶・ラン証跡のみ。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>記憶のありか</h3>
+      <ul>
+        <li><b>STATE.md</b> — 検証済み事実、決定 D1–D8、未解決の失敗、再開ポインタ。</li>
+        <li><b>SKILL.md の各節</b> — 既知の失敗モード、アンチパターン、評価スイート、ランログ（追記専用・日付つき）。</li>
+        <li><b>git 履歴</b> — 自己編集はすべて監査・巻き戻し可能な diff。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>あなたの操作点</h3>
+      <ul>
+        <li><b>ルーブリック承認</b>（Phase 1）— 最大のハンドル。</li>
+        <li><b>デザイン方向</b> — テイストはここで一度だけ入り、凍結される。</li>
+        <li><b>スライスデモ</b> — モーションと操作感のフィードバック。</li>
+        <li>それ以外は自走する。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>リサーチの深さ</h3>
+      <ul>
+        <li><b>/prd</b> は深掘りの要否を自分で判断し、どちらを選んだか必ず報告する。</li>
+        <li><b>/deep-prd</b> は深掘りを強制。プラグインが無ければ静かに劣化せず、声を上げて失敗する。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>決着済み — 蒸し返さない</h3>
+      <ul>
+        <li><b>RAG／ベクタ索引なし・実装役側のコードグラフなし</b> — 生ファイルへの grep が証拠で勝った（0.92 vs 0.83）。詳細は docs/context/11。</li>
+        <li><b>強制フックなし</b> — ルーブリックが要求する作業まで拒否しかねない。</li>
+        <li>ミニマリズムのラダー＋完全性ガードは全ランで稼働中。</li>
+      </ul>
+    </div>
+    <div class="card warn">
+      <h3>注意点</h3>
+      <ul>
+        <li>新しいスキル／エージェントの登録は<b>セッション開始時</b>——導入後は再起動し、見つからなければ一度だけ再試行。</li>
+        <li>ゴールはファイルを作ったセッションではなく、新しいセッションで実行する。</li>
+        <li>最初の UI スライスが vision-verify の E2E テスト——判定が「閲覧した画像ファイル名」を挙げているか確認。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer"><span>ランログ: 6ラン · 成功5 · 設計上の中断1 · ベースライン1イテレーション</span><span>3 / 3</span></div>
+</div>
+
+</body>
+</html>

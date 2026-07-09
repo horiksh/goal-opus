@@ -1,0 +1,18 @@
+{
+  "iteration": 1,
+  "context": "D8 Goal 3 — primitives-first retrieval invariant. This run doubled as the post-Goal-1 regression check: maker used the completeness counter-guard; verifier applied the new over/under-engineering lens.",
+  "criteria": [
+    { "id": "C1", "verdict": "pass", "evidence": "CLAUDE.md diff = exactly 5 added lines (<=6); both rejected classes named with distinct one-line reasons; link resolves to docs/context/11-retrieval-invariant.md.", "refutation_attempted": "Counted added lines; checked both classes carry reasons, not just names; followed the link to the real file." },
+    { "id": "C2", "verdict": "pass", "evidence": "Substrate L25-36: 0.83 vs 0.92 + 'graph-native structural queries only' + [VERIFIED+SRC 3-0] + arxiv.org/html/2603.27277v1; [REPORTED] abandoned-RAG; L44-53 staleness argument.", "refutation_attempted": "Verified each token separately (both numbers, exact URL, tag on the right line) rather than a paraphrase." },
+    { "id": "C3", "verdict": "pass", "evidence": "L59-72: verifier-only, one-shot, FROZEN artifact, discarded after grade; trigger = demonstrated verifier token-bleed on genuinely structural rubric criteria on a specific goal.", "refutation_attempted": "Checked all three scope attributes AND a measurable, goal-specific trigger are explicit." },
+    { "id": "C4", "verdict": "pass", "evidence": "prd SKILL.md L67-71 'Loop-retrieval guard (do not re-litigate)' at end of Phase 2, citing file 11; git status limited to the four allowed paths.", "refutation_attempted": "Confirmed placement inside Phase 2 (not orphaned); scanned status for stray files." }
+  ],
+  "banned_outcomes": [
+    { "id": "B1", "triggered": false, "evidence": "git diff on this goal's criteria.json empty." },
+    { "id": "B2", "triggered": false, "evidence": "No settings/hook/package files in status; CLAUDE.md addition = 5 lines." },
+    { "id": "B3", "triggered": false, "evidence": "All numbers/tags/URLs cross-checked verbatim against docs/research/2026-07-08-tooling-augmentation.md (lines 65, 71, 76, 106, 107); no invented citations; internal cross-refs resolve." }
+  ],
+  "overall": "PASS",
+  "diff_for_maker": [],
+  "lens_note": "Over-engineering lens applied: substrate note judged right-sized, not a treatise."
+}

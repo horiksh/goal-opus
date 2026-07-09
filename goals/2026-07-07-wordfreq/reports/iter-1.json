@@ -1,0 +1,43 @@
+{
+  "iteration": 1,
+  "criteria": [
+    {
+      "id": "C1",
+      "verdict": "pass",
+      "evidence": "`python tools/wordfreq.py tools/tests/sample.txt 5` -> 5 lines: 'the 6 / fox 5 / dog 4 / bird 3 / cat 3', exit=0. Independent recount of sample.txt gives identical counts and ordering; tie between bird 3 and cat 3 is alphabetical (bird before cat).",
+      "refutation_attempted": "Recomputed word frequencies independently with my own regex+Counter and compared to program output line-by-line; specifically checked the bird/cat count-3 tie is alphabetical (b<c) rather than insertion order. Match exact."
+    },
+    {
+      "id": "C2",
+      "verdict": "pass",
+      "evidence": "`python -m pytest tools/tests/ -q` -> '8 passed in 0.25s', exit=0. `--collect-only` confirms 8 tests collected (>=3).",
+      "refutation_attempted": "Ran --collect-only to confirm tests are real and >=3, not a single parametrized stub; 8 distinct test functions collected and all passed."
+    },
+    {
+      "id": "C3",
+      "verdict": "pass",
+      "evidence": "`python tools/wordfreq.py tools/tests/empty.txt 5` -> exit=0, stdout 0 bytes, stderr empty (no Traceback). `wc -c tools/tests/empty.txt` = 0 bytes; file exists.",
+      "refutation_attempted": "Verified empty.txt is genuinely zero bytes via wc -c and ls; captured stdout byte count (0) and full stderr separately to catch any traceback text — none present."
+    },
+    {
+      "id": "C4",
+      "verdict": "pass",
+      "evidence": "Provided verify command asserts no duplicate case-variant words; output words=['the','fox','dog','bird','cat','ant','elephant'], exit=0. sample.txt confirmed to contain mixed-case duplicates: the={the,The,THE}, fox={fox,Fox,FOX}, dog, cat, bird.",
+      "refutation_attempted": "Went beyond the assertion: enumerated all raw tokens and grouped by lowercased key to prove sample.txt actually contains >1 distinct case form for multiple words (5 words), so the dedup test is non-vacuous. Also confirmed unit test test_count_words_is_case_insensitive collapses The/the/THE/tHe to count 4."
+    }
+  ],
+  "banned_outcomes": [
+    {
+      "id": "B1",
+      "triggered": false,
+      "evidence": "`grep -nE 'socket|urllib|requests|http' tools/wordfreq.py tools/tests/test_wordfreq.py` returned no matches (exit 1). Only imports are re, sys, collections.Counter (wordfreq) and subprocess, sys, pathlib (tests)."
+    },
+    {
+      "id": "B2",
+      "triggered": false,
+      "evidence": "`git diff goals/2026-07-07-wordfreq/criteria.json` produced empty output; `git status --porcelain` on the file is empty — unmodified."
+    }
+  ],
+  "overall": "PASS",
+  "diff_for_maker": []
+}

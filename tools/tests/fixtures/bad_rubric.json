@@ -1,0 +1,15 @@
+{
+  "goal": "a deliberately malformed rubric for testing rubric_check.py",
+  "created": "2026-07-07",
+  "max_iterations": 3,
+  "status": "in_progress",
+  "criteria": [
+    {
+      "id": "C1",
+      "statement": "this criterion is missing its verify field",
+      "status": "failing",
+      "evidence": null
+    }
+  ],
+  "banned_outcomes": []
+}

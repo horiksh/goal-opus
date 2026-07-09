@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agent System Overview</title>
+<style>
+  @page { size: 320mm 180mm; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: "Segoe UI", -apple-system, sans-serif; color: #1a2332; }
+  .slide { width: 320mm; height: 180mm; page-break-after: always; padding: 12mm 14mm; position: relative; background: #fafbfd; overflow: hidden; }
+  .slide:last-child { page-break-after: avoid; }
+  .kicker { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: #5b6b85; font-weight: 600; }
+  h1 { font-size: 30px; font-weight: 700; margin: 2mm 0 1.5mm; letter-spacing: -0.5px; }
+  .sub { font-size: 13px; color: #5b6b85; margin-bottom: 6mm; }
+  .accent { color: #0f6b62; }
+  .footer { position: absolute; bottom: 7mm; left: 14mm; right: 14mm; display: flex; justify-content: space-between; font-size: 9.5px; color: #8593a8; border-top: 1px solid #e3e8f0; padding-top: 2.5mm; }
+
+  /* slide 1: loop diagram */
+  .loop { display: flex; align-items: stretch; gap: 4mm; margin-bottom: 5mm; }
+  .stage { flex: 1; background: #fff; border: 1.5px solid #d5dce8; border-radius: 10px; padding: 4mm 4mm 3.5mm; position: relative; }
+  .stage h3 { font-size: 13.5px; margin-bottom: 1.5mm; }
+  .stage .who { font-size: 9px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #0f6b62; margin-bottom: 1.5mm; }
+  .stage p { font-size: 10.5px; line-height: 1.45; color: #3d4a5f; }
+  .stage.verifier { border-color: #b0503c; }
+  .stage.verifier .who { color: #b0503c; }
+  .arrow { align-self: center; font-size: 20px; color: #9aa8bd; flex: 0 0 auto; }
+  .gateband { display: flex; gap: 4mm; }
+  .gatebox { flex: 1.2; background: #103c38; color: #eef5f4; border-radius: 10px; padding: 4mm; }
+  .gatebox h3 { font-size: 13px; margin-bottom: 1.5mm; color: #8fd6cc; }
+  .gatebox p { font-size: 10.5px; line-height: 1.5; color: #cfe3e0; }
+  .writeback { flex: 1.8; background: #fff7ec; border: 1.5px solid #e3b268; border-radius: 10px; padding: 4mm; }
+  .writeback h3 { font-size: 13px; color: #8a5d13; margin-bottom: 1.5mm; }
+  .writeback p { font-size: 10.5px; line-height: 1.5; color: #5c4a26; }
+  .invariants { margin-top: 5mm; display: flex; gap: 3mm; }
+  .inv { flex: 1; font-size: 10px; line-height: 1.4; background: #eef1f7; border-radius: 7px; padding: 2.5mm 3mm; color: #33415a; }
+  .inv b { color: #17233a; }
+
+  /* slide 2: workflow steps */
+  .steps { counter-reset: step; }
+  .step { display: flex; gap: 5mm; background: #fff; border: 1.5px solid #d5dce8; border-radius: 10px; padding: 3.5mm 4.5mm; margin-bottom: 3.2mm; align-items: baseline; }
+  .num { flex: 0 0 9mm; font-size: 21px; font-weight: 800; color: #0f6b62; }
+  .cmd { flex: 0 0 92mm; font-family: Consolas, monospace; font-size: 12.5px; font-weight: 600; color: #17233a; }
+  .cmd small { display: block; font-family: "Segoe UI", sans-serif; font-weight: 400; font-size: 10px; color: #5b6b85; margin-top: 0.8mm; }
+  .you { flex: 1; font-size: 11px; line-height: 1.45; color: #3d4a5f; }
+  .you b { color: #b0503c; }
+
+  /* slide 3: cheat sheet */
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4mm; }
+  .card { background: #fff; border: 1.5px solid #d5dce8; border-radius: 10px; padding: 4mm; }
+  .card h3 { font-size: 12.5px; margin-bottom: 2mm; color: #0f6b62; }
+  .card ul { list-style: none; }
+  .card li { font-size: 10.5px; line-height: 1.5; color: #3d4a5f; padding-left: 4mm; position: relative; margin-bottom: 1.6mm; }
+  .card li::before { content: "▸"; position: absolute; left: 0; color: #9aa8bd; }
+  .card li b { color: #17233a; }
+  .warn { background: #fff3f0; border-color: #d9a08f; }
+  .warn h3 { color: #b0503c; }
+</style>
+</head>
+<body>
+
+<!-- ===================== SLIDE 1 ===================== -->
+<div class="slide">
+  <div class="kicker">Agent home · D:\horil\agent</div>
+  <h1>How the agent works — <span class="accent">the self-improving goal loop</span></h1>
+  <div class="sub">One fixed model (Opus 4.8), three separated roles. The model never gets smarter — <b>the files around it do.</b></div>
+
+  <div class="loop">
+    <div class="stage">
+      <div class="who">Orchestrator</div>
+      <h3>1 · Define done FIRST</h3>
+      <p><b>criteria.json</b> — every criterion starts <b>failing</b>, each with an executable check, plus banned outcomes (instant fail) and a hard iteration cap. <b>You sign this off</b> — it is locked from then on.</p>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="who">Maker · builds</div>
+      <h3>2 · Make</h3>
+      <p>Walks the 7-rung <b>decision ladder</b> (YAGNI → reuse → stdlib → … → minimum viable) before writing code, then must enumerate <b>every criterion: satisfied / not-satisfied</b>. Never grades itself, never touches the rubric.</p>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage verifier">
+      <div class="who">Verifier · grades</div>
+      <h3>3 · Adversarial verify</h3>
+      <p>Fresh context, <b>no Write/Edit tools</b>, never sees the maker's notes. Executes every check, tries to <b>refute</b>, fails both over-engineering and under-implementation. UI work is judged <b>by looking at re-captured screenshots</b>.</p>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="who">Orchestrator</div>
+      <h3>4 · Gate</h3>
+      <p>Only the orchestrator flips a criterion to passing — and only on a verifier <b>pass with evidence</b>. Any fail → structured diff back to the maker. All pass → done. Cap hit → honest <b>abort</b>, never a fake success.</p>
+    </div>
+  </div>
+
+  <div class="gateband">
+    <div class="gatebox">
+      <h3>5 · Write-back — mandatory, every run</h3>
+      <p>Success, abort, or cancel alike: lessons are distilled into general rules → <b>STATE.md</b>; confirmed failures append to the skill's own <b>Known failure modes</b>. Then everything commits to git.</p>
+    </div>
+    <div class="writeback">
+      <h3>Why this compounds</h3>
+      <p>The next run <b>reads what the last run learned</b> — rules ride along in every maker packet, failure modes are consulted before each rubric. Wrong lessons get corrected as dated entries, and every self-edit is a reviewable git diff. Six runs so far; the loop has already caught and fixed one of its own false beliefs.</p>
+    </div>
+  </div>
+
+  <div class="invariants">
+    <div class="inv"><b>Maker ≠ grader.</b> The builder never judges its own work.</div>
+    <div class="inv"><b>Default-FAIL.</b> Nothing passes without executed evidence.</div>
+    <div class="inv"><b>Write before walking.</b> A run without write-back isn't finished.</div>
+    <div class="inv"><b>Verified by looking.</b> Visual work is graded from screenshots, never prose.</div>
+    <div class="inv"><b>Home ≠ target.</b> Product code lives in each goal's target repo, never here.</div>
+  </div>
+
+  <div class="footer"><span>Self-improving agent system · goal-opus loop</span><span>1 / 3</span></div>
+</div>
+
+<!-- ===================== SLIDE 2 ===================== -->
+<div class="slide">
+  <div class="kicker">Your workflow</div>
+  <h1>From idea to shipped — <span class="accent">the command sequence</span></h1>
+  <div class="sub">Everything runs from a session opened in the agent home. Your taste and sign-offs are the only manual steps — by design.</div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="num">1</div>
+      <div class="cmd">/prd &lt;product idea&gt;<small>or /deep-prd to force exhaustive, verified research</small></div>
+      <div class="you">Researches best practices + analog software, mines the <b>requirements you never stated</b>, writes the PRD + a seeded rubric. <b>You:</b> answer up to 4 scope questions.</div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div class="cmd">/design-direction &lt;product&gt;, target: &lt;path&gt;<small>only for products with a UI — run BEFORE the first UI slice</small></div>
+      <div class="you">Interactive taste session → frozen tokens, reference images, banned visual outcomes. <b>You:</b> bring screenshots of UIs you admire; react live; pick a direction.</div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div class="cmd">/goal-opus implement phase 1 of &lt;PRD&gt;, target: &lt;path&gt;<small>one roadmap phase = one goal run, using criteria.seed.json</small></div>
+      <div class="you">The loop from slide 1 runs to done or honest abort. <b>You: sign off the rubric — this is your steering wheel.</b> Shape criteria, banned outcomes, max iterations.</div>
+    </div>
+    <div class="step">
+      <div class="num">4</div>
+      <div class="cmd">repeat per phase · demo each slice<small>phase gates must pass before the next phase opens</small></div>
+      <div class="you">At slice demos, give the feedback screenshots can't capture: <b>motion feel, interactive performance</b>. That's the one thing the loop honestly can't judge.</div>
+    </div>
+    <div class="step">
+      <div class="num">5</div>
+      <div class="cmd">read the final report<small>criteria table · iterations used · what was learned &amp; written back where</small></div>
+      <div class="you">Trust an <b>aborted</b> verdict — it means the system refused to fake success. Everything learned is already committed; the next run starts smarter.</div>
+    </div>
+  </div>
+
+  <div class="footer"><span>/prd → /design-direction → /goal-opus, phase by phase</span><span>2 / 3</span></div>
+</div>
+
+<!-- ===================== SLIDE 3 ===================== -->
+<div class="slide">
+  <div class="kicker">Operating manual</div>
+  <h1>Rules of thumb — <span class="accent">using it efficiently</span></h1>
+  <div class="sub">The habits that keep the system compounding instead of drifting.</div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>One home, many targets</h3>
+      <ul>
+        <li><b>Never clone this repo per project</b> — clones fork the self-improving skill and splinter its learning.</li>
+        <li>Every build goal declares <b>target: &lt;path&gt;</b>; product code + its own STATE.md live there.</li>
+        <li>The home keeps only the system, memory, and run evidence.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Where memory lives</h3>
+      <ul>
+        <li><b>STATE.md</b> — verified facts, decisions D1–D8, open failures, resume pointer.</li>
+        <li><b>SKILL.md sections</b> — known failure modes, anti-patterns, eval suite, run log (append-only, dated).</li>
+        <li><b>git history</b> — every self-edit is a diff you can audit and revert.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Your control points</h3>
+      <ul>
+        <li><b>Rubric sign-off</b> (Phase 1) — the main steering wheel.</li>
+        <li><b>Design direction</b> — taste enters here, once, then freezes.</li>
+        <li><b>Slice demos</b> — motion & feel feedback.</li>
+        <li>Everything else runs hands-off.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Research depth</h3>
+      <ul>
+        <li><b>/prd</b> judges for itself when to escalate to deep research — and says which depth it chose.</li>
+        <li><b>/deep-prd</b> forces it, and fails loudly if the plugin is missing — never a silent downgrade.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Settled — don't re-litigate</h3>
+      <ul>
+        <li><b>No RAG / vector index; no maker-side code-graph</b> — grep over live files won on evidence (0.92 vs 0.83); details in docs/context/11.</li>
+        <li><b>No enforcement hooks</b> — they can veto work the rubric requires.</li>
+        <li>Minimalism ladder + completeness guard are live in every run.</li>
+      </ul>
+    </div>
+    <div class="card warn">
+      <h3>Gotchas</h3>
+      <ul>
+        <li>New skills/agents register at <b>session start</b> — restart after installing, retry once if an agent isn't found.</li>
+        <li>Goals into a fresh session, not the one that scaffolded the files.</li>
+        <li>First UI slice E2E-tests vision-verify — check the verdict names the image files it viewed.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer"><span>Run log: 6 runs · 5 success · 1 designed abort · baseline 1 iteration</span><span>3 / 3</span></div>
+</div>
+
+</body>
+</html>

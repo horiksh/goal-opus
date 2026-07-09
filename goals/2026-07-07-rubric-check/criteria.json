@@ -1,0 +1,76 @@
+{
+  "goal": "tools/rubric_check.py validates goal-opus criteria.json files (exit 0 valid / exit 1 with named problems)",
+  "created": "2026-07-07",
+  "max_iterations": 5,
+  "status": "success",
+  "criteria": [
+    {
+      "id": "C1",
+      "statement": "validator accepts the wordfreq rubric (valid, status success)",
+      "verify": "python tools/rubric_check.py goals/2026-07-07-wordfreq/criteria.json; check exit code 0",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C1 — exit 0 on wordfreq rubric; validator proven non-blanket via adversarial rejects",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C1"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "statement": "validator accepts the abort-probe rubric (valid, status aborted)",
+      "verify": "python tools/rubric_check.py goals/2026-07-07-abort-probe/criteria.json; check exit code 0",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C2 — exit 0 on abort-probe rubric; 'done' status correctly rejected",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C2"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "statement": "validator rejects a malformed rubric (missing verify field and empty banned_outcomes) with exit 1 and messages naming each problem",
+      "verify": "python tools/rubric_check.py tools/tests/fixtures/bad_rubric.json; check exit code 1 and stderr/stdout names both the missing verify and the empty banned_outcomes",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C3 — exit 1 naming both defects (missing verify, empty banned_outcomes)",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C3"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "statement": "pytest suite for the validator passes with at least 3 tests collected",
+      "verify": "python -m pytest tools/tests/test_rubric_check.py -q; check exit code 0 and >=3 tests passed",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C4 — 19 passed, exit 0, assertions independently reproduced",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C4"
+        }
+      ]
+    }
+  ],
+  "banned_outcomes": [
+    {
+      "id": "B1",
+      "statement": "the artifact requires network access",
+      "verify": "grep rubric_check.py and its tests for socket/urllib/requests/http imports — none may appear"
+    },
+    {
+      "id": "B2",
+      "statement": "this goal's criteria.json was modified by the maker",
+      "verify": "git diff goals/2026-07-07-rubric-check/criteria.json must be empty"
+    }
+  ]
+}

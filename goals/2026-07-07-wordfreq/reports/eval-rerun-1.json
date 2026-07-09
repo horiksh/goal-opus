@@ -1,0 +1,16 @@
+{
+  "iteration": "eval-rerun-1",
+  "context": "Eval-suite regression re-run after goal-opus skill edits (scope rules, ee7d825). Run by the REGISTERED goal-verifier agent.",
+  "criteria": [
+    { "id": "C1", "verdict": "pass", "evidence": "5 lines 'the 6 / fox 5 / dog 4 / bird 3 / cat 3', exit 0; hand-recounted against sample.txt including the bird/cat alphabetical tie-break." },
+    { "id": "C2", "verdict": "pass", "evidence": "'8 passed in 0.24s', exit 0; tests read and confirmed to be real assertions, not skips." },
+    { "id": "C3", "verdict": "pass", "evidence": "exit 0, empty stdout, empty stderr; empty.txt confirmed exactly 0 bytes." },
+    { "id": "C4", "verdict": "pass", "evidence": "dedup assertion passed; sample.txt confirmed to contain mixed-case duplicates for 5 words." }
+  ],
+  "banned_outcomes": [
+    { "id": "B1", "triggered": false, "evidence": "grep for network imports across tools/ — no matches." },
+    { "id": "B2", "triggered": false, "evidence": "git status --porcelain on wordfreq criteria.json — empty." }
+  ],
+  "overall": "PASS",
+  "diff_for_maker": []
+}

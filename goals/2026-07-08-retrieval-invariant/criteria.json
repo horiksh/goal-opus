@@ -1,0 +1,81 @@
+{
+  "goal": "Codify the primitives-first retrieval invariant (grep over live files; no RAG; no persistent maker-side code-graph) in CLAUDE.md + a cited substrate file, cross-linked from /prd",
+  "created": "2026-07-08",
+  "max_iterations": 5,
+  "status": "success",
+  "criteria": [
+    {
+      "id": "C1",
+      "statement": "CLAUDE.md gains a compact primitives-first retrieval invariant (max 6 new lines) naming both rejected classes (embedding/RAG; persistent maker-side code-graph) with a one-line reason each, linking to the substrate file",
+      "verify": "Read CLAUDE.md; confirm the invariant names both classes + reasons + link; git diff CLAUDE.md shows at most 6 added lines",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C1",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C1"
+        }
+      ]
+    },
+    {
+      "id": "C2",
+      "statement": "the linked substrate file records the measured asymmetry (grep 0.92 vs graph 0.83 overall; graphs win only structural queries) with the arxiv source URL and its verification tag, plus the Anthropic-abandoned-RAG rationale and the staleness argument",
+      "verify": "Read the substrate file; confirm the 0.92/0.83 numbers, arxiv.org/html/2603.27277v1 URL, a [VERIFIED+SRC] tag on the asymmetry, a [REPORTED]-tagged abandoned-RAG claim, and the self-rewriting-maker staleness argument",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C2",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C2"
+        }
+      ]
+    },
+    {
+      "id": "C3",
+      "statement": "the single exception is defined: verifier-only, one-shot graph over the frozen artifact, gated on a measurable pre-condition (demonstrated verifier token-bleed on structural criteria on a specific goal)",
+      "verify": "Read the substrate file; confirm the exception scope (verifier-only, one-shot, frozen artifact) and the measurable trigger condition are both stated",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C3",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C3"
+        }
+      ]
+    },
+    {
+      "id": "C4",
+      "statement": "/prd Phase 2 cross-links the invariant so PRD research does not re-propose RAG/graphs for the loop, and the whole change is text-only with no new dependency",
+      "verify": "grep .claude/skills/prd/SKILL.md for a reference to the invariant/substrate file in or near Phase 2; git status --porcelain shows only CLAUDE.md, the substrate file, .claude/skills/prd/SKILL.md, and this goal's workdir",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C4",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json C4"
+        }
+      ]
+    }
+  ],
+  "banned_outcomes": [
+    {
+      "id": "B1",
+      "statement": "this goal's criteria.json was modified by the maker",
+      "verify": "git diff goals/2026-07-08-retrieval-invariant/criteria.json must be empty"
+    },
+    {
+      "id": "B2",
+      "statement": "a dependency, hook, or MCP server was added, or CLAUDE.md bloats beyond the 6-line addition",
+      "verify": "git status shows no settings/hook/package files; git diff CLAUDE.md addition count <= 6 lines"
+    },
+    {
+      "id": "B3",
+      "statement": "the invariant misstates the evidence (numbers or tags not matching docs/research/2026-07-08-tooling-augmentation.md)",
+      "verify": "compare the substrate file's numbers/tags against the research report — 0.92/0.83 must be tagged verified, abandoned-RAG must be tagged reported, no invented citations"
+    }
+  ]
+}

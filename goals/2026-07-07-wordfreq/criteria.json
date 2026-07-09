@@ -1,0 +1,60 @@
+{
+  "goal": "tools/wordfreq.py prints the top-N word frequencies of a text file, with passing pytest tests",
+  "created": "2026-07-07",
+  "max_iterations": 5,
+  "status": "success",
+  "criteria": [
+    {
+      "id": "C1",
+      "statement": "wordfreq.py runs on a sample file and prints the top-5 words with counts, most frequent first, exit code 0",
+      "verify": "python tools/wordfreq.py tools/tests/sample.txt 5; check exit code is 0 and output is 5 lines of 'word count' sorted by descending count, ties alphabetical, consistent with the actual content of sample.txt",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C1 — 'the 6 / fox 5 / dog 4 / bird 3 / cat 3', exit 0, independently recounted by verifier",
+      "history": [
+        { "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json C1" }
+      ]
+    },
+    {
+      "id": "C2",
+      "statement": "pytest suite passes with at least 3 tests collected",
+      "verify": "python -m pytest tools/tests/ -q; check exit code 0 and >=3 tests passed",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C2 — '8 passed in 0.25s', exit 0, --collect-only confirmed 8 real tests",
+      "history": [
+        { "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json C2" }
+      ]
+    },
+    {
+      "id": "C3",
+      "statement": "empty input file produces no output and exit code 0 (no traceback)",
+      "verify": "create nothing: run python tools/wordfreq.py tools/tests/empty.txt 5 (empty.txt must exist in the repo, zero bytes); check exit code 0, empty stdout, no traceback on stderr",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C3 — exit 0, stdout 0 bytes, stderr empty, empty.txt verified zero bytes",
+      "history": [
+        { "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json C3" }
+      ]
+    },
+    {
+      "id": "C4",
+      "statement": "case-insensitivity: 'The' and 'the' count as one word",
+      "verify": "python -c \"import subprocess; out=subprocess.run(['python','tools/wordfreq.py','tools/tests/sample.txt','50'],capture_output=True,text=True).stdout.lower().split(); words=out[::2]; assert len(words)==len(set(words)), 'duplicate case-variant words'\" plus confirm sample.txt actually contains mixed-case duplicates of at least one word",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C4 — assertion passed; sample.txt proven to contain mixed-case duplicates for 5 words (non-vacuous test)",
+      "history": [
+        { "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json C4" }
+      ]
+    }
+  ],
+  "banned_outcomes": [
+    {
+      "id": "B1",
+      "statement": "the artifact requires network access",
+      "verify": "grep wordfreq.py and tests for socket/urllib/requests/http imports — none may appear"
+    },
+    {
+      "id": "B2",
+      "statement": "criteria.json was modified by the maker",
+      "verify": "git diff goals/2026-07-07-wordfreq/criteria.json must be empty"
+    }
+  ]
+}

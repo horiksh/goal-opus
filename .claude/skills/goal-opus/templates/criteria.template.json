@@ -1,0 +1,23 @@
+{
+  "goal": "<one sentence>",
+  "created": "<yyyy-mm-dd>",
+  "max_iterations": 5,
+  "status": "in_progress",
+  "criteria": [
+    {
+      "id": "C1",
+      "statement": "<objective, singular, checkable>",
+      "verify": "<exact command or concrete read-only procedure>",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    }
+  ],
+  "banned_outcomes": [
+    {
+      "id": "B1",
+      "statement": "<instant-fail condition>",
+      "verify": "<check>"
+    }
+  ]
+}

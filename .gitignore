@@ -1,0 +1,6 @@
+# Claude Code personal settings (machine-local permission grants)
+.claude/settings.local.json
+
+# Python
+__pycache__/
+.pytest_cache/

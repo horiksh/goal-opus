@@ -1,0 +1,36 @@
+{
+  "iteration": 1,
+  "context": "First goal run on the REGISTERED goal-maker/goal-verifier agents (routing + tool-allowlist verification).",
+  "criteria": [
+    {
+      "id": "C1",
+      "verdict": "pass",
+      "evidence": "python tools/rubric_check.py goals/2026-07-07-wordfreq/criteria.json -> 'OK: ... is a valid rubric', exit=0.",
+      "refutation_attempted": "Confirmed exit 0 is meaningful: validator rejects invalid inputs (adversarial temp-file tests) and the target rubric genuinely has status 'success'."
+    },
+    {
+      "id": "C2",
+      "verdict": "pass",
+      "evidence": "python tools/rubric_check.py goals/2026-07-07-abort-probe/criteria.json -> 'OK', exit=0; status 'aborted' confirmed in file.",
+      "refutation_attempted": "Fed a rubric with status 'done' — rejected exit 1, so 'aborted' acceptance is deliberate, not blanket."
+    },
+    {
+      "id": "C3",
+      "verdict": "pass",
+      "evidence": "exit=1 with both problems named: 'criteria[0] (id=C1) missing required field: verify' and 'banned_outcomes must be a non-empty list'.",
+      "refutation_attempted": "Inspected the fixture to confirm both defects are genuinely present; output (stderr) names both."
+    },
+    {
+      "id": "C4",
+      "verdict": "pass",
+      "evidence": "python -m pytest tools/tests/test_rubric_check.py -q -> '19 passed in 0.21s', exit=0.",
+      "refutation_attempted": "Independently reproduced key assertions via adversarial malformed inputs (duplicate ids, null-evidence passing criterion, invalid status, bad JSON, no-args) — all handled per the documented rules."
+    }
+  ],
+  "banned_outcomes": [
+    { "id": "B1", "triggered": false, "evidence": "grep for socket/urllib/requests/http/urlopen over rubric_check.py and tests — no matches; imports are json, sys / copy, subprocess, sys, pathlib." },
+    { "id": "B2", "triggered": false, "evidence": "git diff on this goal's criteria.json empty; file tracked, only PROGRESS.md modified." }
+  ],
+  "overall": "PASS",
+  "diff_for_maker": []
+}
