@@ -165,4 +165,11 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   revision. Do not resume anything usage-os-related. What survives: the `/deep-prd`
   protocol validation itself (full run exercised 2026-07-07, R4 catches confirmed), the
   deep-research rate-limit recovery lessons above, and the prd skill's eval-suite/run-log
-  entries (marked historical). Artifacts recoverable from git history (commit 77487f0).
+  entries (marked historical). Artifacts recoverable from git history (commit 77487f0
+  on the LOCAL `private-history` branch — see the publishing entry below).
+- [2026-07-09] REPO PUBLISHED: public at https://github.com/horiksh/goal-opus (MIT,
+  README added). Branch model: `main` = public, fresh root (single "Initial public
+  release" commit, noreply author); `private-history` = the full pre-release history,
+  LOCAL ONLY — never push it (it contains the reset usage-os PRD and personal-email
+  commit metadata). Day-to-day work happens on `main`; pre-release commit hashes cited
+  in this file resolve only on `private-history`.
