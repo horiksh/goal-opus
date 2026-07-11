@@ -113,6 +113,15 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   tag salvaged claims by true status (`[VERIFIED+SRC*]` = primary-source-extracted-but-vote-
   pending, `[REPORTED]` = single user report) and say so in the PRD provenance header. That is
   NOT the silent downgrade `/deep-prd` forbids; a silent swap to the cheap fan-out would be.
+- [2026-07-09] Deep-research recovery, refined (extends the 2026-07-07 rolling-limit lesson):
+  (1) the rolling session limit needs REAL IDLE HOURS to clear, not just the reset timestamp to
+  pass — resuming within ~1–2h of a nominal reset re-tripped it three times; the resume that fully
+  verified ran ~5h after the reset with the account otherwise idle. (2) `resumeFromRunId` replays
+  every completed search/fetch/verify agent from cache for FREE — the full-verify resume cost 59k
+  tokens vs ~2M cold. (3) The `deep-research` synthesize agent can THROW `StructuredOutput retry
+  cap (5) exceeded` on a large confirmed-claim set, and the throw propagates past the script's own
+  `if(!report){…salvage…}` guard — wrap the synthesize `agent()` call in try/catch so the salvage
+  return fires. R1 reached 22/25 verified only after the try/catch patch + a rested-window resume.
 
 ## Last session
 - [2026-07-07] Scaffolded the /goal-opus system and ran E2E verification. Run 1
@@ -173,3 +182,16 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   LOCAL ONLY — never push it (it contains the reset usage-os PRD and personal-email
   commit metadata). Day-to-day work happens on `main`; pre-release commit hashes cited
   in this file resolve only on `private-history`.
+- [2026-07-09→11] `/deep-prd "an agentic OS for this repository setup"` — first real PRD run since
+  the 07-09 reset. Scope locked with the user (4 Qs): PORTABLE Claude-Code-native framework · solo
+  operator first · Windows/Claude-Code v1 runtime · runnable orchestration layer as v1 "done".
+  MID-FLIGHT (not a completed run): R1 (best practices) FULLY VERIFIED 22/25 after four
+  rate-limited attempts + a script-patched rested-window resume → `prds/2026-07-09-agentic-os/
+  research/R1-best-practices.md`; R2 (analogs + failure modes) SALVAGED 12 verified + 13 reported
+  (verify was limit-truncated) → `research/R2-analogs.md`. PENDING: R3 (untold reqs), R4 (gap
+  check), PRD.md synthesis, criteria.seed.json, final Phase 6/7. A WIP PR was opened for the
+  research phase. Key R1 finding: the external primary-source evidence VALIDATES this repo's own
+  design (maker≠grader, Default-FAIL rubric, plain-file cross-session state, primitives-first
+  retrieval) — the product is largely *packaging what's already validated* into a portable
+  framework. Resume pointer: run R3 (single agent) over R1+R2, then R4, then synthesize the PRD +
+  seed. Slug date 07-09 = run start; session spanned to 07-11 due to the rate-limit waits.

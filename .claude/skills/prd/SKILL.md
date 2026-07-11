@@ -149,6 +149,14 @@ RETURN EXACTLY: { "missing_categories": [], "unsourced_claims": [],
   big R1/R2 workflows tripped the limit, single-agent R3 (untold reqs) and R4 (gap check) both
   ran cleanly — a lone subagent is a small draw. The account is rate/burst-limited, not hard-
   blocked; the main loop keeps working throughout. Prefer single `Agent` spawns for R3/R4.
+- **[2026-07-09] The deep-research synthesize agent can HARD-THROW, not just return null.** A large
+  confirmed-claim set makes the final `synthesize` `agent({schema})` call exceed its StructuredOutput
+  retry cap (5) and THROW — which propagates past the script's own `if(!report){…salvage…}` guard and
+  fails the whole workflow AFTER a clean 75-vote verify. Fix: resume with the synthesize call wrapped
+  in try/catch (`let report=null; try{report=await agent(…)}catch(e){log(…)}`) so the built-in salvage
+  return fires; the verify phase replays from cache for free. Also refined: the rolling account limit
+  needs REAL IDLE HOURS to clear, not just the reset timestamp to pass (three post-reset resumes
+  re-tripped within ~1–2h; the clean full-verify resume ran ~5h out). Extends the 2026-07-07 entry.
 
 ## Anti-patterns (do NOT do)
 
