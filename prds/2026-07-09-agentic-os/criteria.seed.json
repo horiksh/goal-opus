@@ -1,0 +1,161 @@
+{
+  "goal": "Ship a runnable v1 agentic-OS orchestration layer: from a fresh clone on Windows, bootstrap the framework into a TARGET repo and have an orchestrator sequence >=2 goal-opus runs to their Default-FAIL rubrics over shared file memory - bounded, steerable, resumable, reversible. (Master seed for /deep-prd agentic-os; each /goal-opus phase run scopes the relevant subset and MAY override max_iterations.)",
+  "created": "2026-07-09",
+  "max_iterations": 8,
+  "status": "in_progress",
+  "criteria": [
+    {
+      "id": "C1",
+      "statement": "The orchestrator refuses to start a goal whose criteria.json is invalid or lacks max_iterations (rubric is gated, not assumed).",
+      "verify": "Attempt to start a goal with (a) a rubric that fails `python tools/rubric_check.py <rubric>` and (b) a rubric with no max_iterations. Assert the orchestrator does NOT run either goal (non-zero exit / logged refusal in the run log). Reference gate: rubric_check exit code.",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    },
+    {
+      "id": "C2",
+      "statement": "A write-back artifact exists after EVERY run outcome, including an injected crash (compounding contract, orchestrator-level).",
+      "verify": "Drive one goal to each of success, abort, and a killed-mid-run crash. For each, assert a STATE.md change AND a per-iteration run-log entry AND a git checkpoint commit exist (git log --oneline; diff STATE.md; read run log).",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    },
+    {
+      "id": "C3",
+      "statement": "Every run is bounded: a run with no max_iterations/token budget is rejected, and an impossible goal aborts at the bound rather than looping unbounded.",
+      "verify": "Start a run with no bound -> rejected. Start with max_iterations=1 on a deliberately impossible goal -> criteria.json ends status=aborted at iteration 1 (read status; assert no iteration 2 in the run log).",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    },
+    {
+      "id": "C4",
+      "statement": "No secret/credential is ever written into memory files, STATE.md, run logs, or file-messages.",
+      "verify": "After a run, run the secret-scan procedure over STATE.md + memory/ + run logs (grep -inE for api[_-]?key|secret|token|password|BEGIN .*PRIVATE KEY|aws_secret). Assert zero matches.",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    },
+    {
+      "id": "C5",
+      "statement": "The operator command/verb surface exists and behaves: init, enqueue-goal, run, status, pause, resume, steer, undo return correct exit codes; an unknown verb fails.",
+      "verify": "Invoke each documented verb with --help (or a no-op) and assert exit 0 + documented usage text; invoke an unknown verb and assert non-zero exit.",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    },
+    {
+      "id": "C6",
+      "statement": "The orchestrator sequences >=2 goal-opus runs over shared file memory with correct run-state transitions, confirmed by a fresh-context verifier from artifacts alone.",
+      "verify": "Run a 2-goal session. Spawn goal-verifier given ONLY the status file + run log + git history (no orchestrator reasoning). Assert its verdict is PASS: two goals ran in sequence, states transitioned idle->running->{success|aborted} per goal, and a write-back occurred per run.",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    },
+    {
+      "id": "C7",
+      "statement": "The AGENT_STOP kill-switch halts all further goal execution within one iteration and triggers write-back; STEER.md is folded in once then cleared.",
+      "verify": "Mid-run, create AGENT_STOP. Assert no new goal-opus iteration starts after the current one completes and a write-back ran (run log shows a halt event). Separately, place a STEER.md; assert it is applied once and the file is deleted afterward.",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    },
+    {
+      "id": "C8",
+      "statement": "A crash mid-run resumes from the last checkpoint WITHOUT double-applying write-back or re-flipping criteria (idempotent replay).",
+      "verify": "Kill the process mid-run, then run resume. Assert: run continues from the last incomplete step (not from zero); count of write-back entries == count of distinct completed iterations (no duplicates); no criterion is flipped twice for the same iteration (diff run log + STATE.md).",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    },
+    {
+      "id": "C9",
+      "statement": "A gamed 'passing' change (marked passing without valid evidence) is caught by the land-gate/flag and is reverted by `undo`, restoring the prior git state.",
+      "verify": "Seed a goal whose maker marks a bad criterion passing without opening evidence. Assert the land-gate blocks or flags it (run log), then run `undo` and assert git HEAD is restored to the pre-change SHA (git rev-parse HEAD == recorded pre-change SHA).",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    },
+    {
+      "id": "C10",
+      "statement": "A classifier-decline is detected and routed to a fallback model / human escalation - never retried as an ordinary error.",
+      "verify": "Inject a decline signal into a maker step. Assert the run branches to fallback/escalation (run log records a decline event) and does NOT re-issue the identical request as a retry.",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    },
+    {
+      "id": "C11",
+      "statement": "Install round-trips on Windows: init scaffolds a fresh TARGET (junction path or copy fallback), uninstall leaves no residue, and upgrade runs a schema migration.",
+      "verify": "On Windows: init a fresh TARGET; assert .claude/ is scaffolded (via NTFS junction where available, else copy fallback). Run uninstall; assert no residual framework files remain. Run upgrade against an old-schema STATE.md; assert its schema-version field is bumped and sections migrated.",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    },
+    {
+      "id": "C12",
+      "statement": "Final acceptance (PRD section 8): the full end-to-end runnable-orchestration gate passes, verified two independent ways.",
+      "verify": "Execute the PRD section-8 script: fresh clone -> one bootstrap command -> enqueue 2 goals -> orchestrator runs both to their Default-FAIL rubrics over shared memory, bounded, write-back each; AGENT_STOP halts within one iteration; resume continues without redo; undo reverts a bad landed change. Assert BOTH: (1) replay from status file + git log reproduces the run's final state, AND (2) a fresh-context goal-verifier returns PASS from artifacts alone.",
+      "status": "failing",
+      "evidence": null,
+      "history": []
+    }
+  ],
+  "banned_outcomes": [
+    {
+      "id": "B1",
+      "statement": "Product code or a goal's build artifacts are committed into the agent-home repo (home != build target).",
+      "verify": "git diff --name-only against the home repo shows only system/memory/evidence paths (.claude/, STATE.md, prds/, goals/, docs/, tools/); no TARGET product source landed in the home."
+    },
+    {
+      "id": "B2",
+      "statement": "The agent that produced work also grades it (maker == grader).",
+      "verify": "Confirm the verifier is a separate goal-verifier spawn with read-only tools and no view of the maker's reasoning (packet inspection / agent id differs from the maker)."
+    },
+    {
+      "id": "B3",
+      "statement": "A loop runs with no hard max_iterations / token budget.",
+      "verify": "Every run's criteria.json has max_iterations >= 1 and the run config carries a token/cost budget; a run lacking either is refused (see C3)."
+    },
+    {
+      "id": "B4",
+      "statement": "A secret/credential is written into memory, STATE.md, a packet, or a file-message.",
+      "verify": "The C4 secret-scan finds zero matches across all memory/state/log/message files."
+    },
+    {
+      "id": "B5",
+      "statement": "The Default-FAIL gate is presented or relied upon as a security/correctness guarantee.",
+      "verify": "Docs and code describe the gate as an anti-drift guardrail (prompt-level) and pair it with the undo/land-gate path; no text claims it is a security boundary."
+    },
+    {
+      "id": "B6",
+      "statement": "A silent research downgrade - salvaged/unverified claims shipped without the weaker tag.",
+      "verify": "Every research claim in the PRD/notes carries a [VERIFIED+SRC]/[REPORTED]/[ASSUMPTION]/[REFUTED] tag; no [REPORTED] claim is presented as verified."
+    },
+    {
+      "id": "B7",
+      "statement": "A run ends (success, abort, or crash) without write-back.",
+      "verify": "See C2: a write-back artifact exists for every terminal outcome including crash."
+    },
+    {
+      "id": "B8",
+      "statement": "Fan-out is launched on a non-decomposable task.",
+      "verify": "Any parallel dispatch is preceded by a decomposability check; a non-decomposable task falls back to single-agent execution (run log records the check outcome)."
+    },
+    {
+      "id": "B9",
+      "statement": "Two concurrent runs write the same shared-home file without ownership partitioning or serialization (applies the moment concurrency is enabled).",
+      "verify": "With concurrency disabled in v1, assert only one active run writes STATE.md/memory at a time; if concurrency is ever enabled, assert file-ownership partitioning or a write lock is present."
+    },
+    {
+      "id": "B10",
+      "statement": "A classifier decline is retried as an ordinary error.",
+      "verify": "See C10: a decline branches to fallback/escalation and is never re-issued as an identical retry."
+    },
+    {
+      "id": "B11",
+      "statement": "An autonomous 'passing' change lands with no revert path.",
+      "verify": "See C9: every landed change records an undo pointer (pre-change git SHA) and `undo` restores it."
+    }
+  ]
+}

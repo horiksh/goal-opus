@@ -182,9 +182,22 @@ RETURN EXACTLY: { "missing_categories": [], "unsourced_claims": [],
   a Banned Outcome (silent $0.00 → B1); (c) an R1↔R3/R4 contradiction is caught and resolved (the
   Windows-no-sandbox vs "84% fewer prompts" O1 catch); (d) v1 is right-sized below the stated
   everything-scope. 26 untold requirements, 9 banned outcomes, ~30 sources (18 verified).
+- **[2026-07-09] `2026-07-09-agentic-os`** (portable, Claude-Code-native agentic-OS framework; solo
+  operator; Windows v1; runnable orchestration layer). First real `/deep-prd` since the 07-09 reset;
+  deep mode. 5 stated / 36 untold requirements (U1–U36), 11 banned outcomes, 12 seeded criteria
+  (`rubric_check` PASS). R1 fully verified (22/25); R2 salvaged (12 verified + 13 reported —
+  limit-truncated). **R4 earned its keep**: it caught that the product's OWN control loop (the
+  orchestration layer itself) had NO research behind it — only its sub-parts did — plus `[REPORTED]`-
+  only confidence clusters and 7 internal contradictions; all folded back (§4d design-flag, confidence
+  tiers, explicit v1 scope decisions). Regression checks for a re-run: (a) provenance header separates
+  verified/reported AND carries the single-vendor caveat; (b) the "which promised capability has NO
+  research" test catches the control-loop gap; (c) every requirement carries a **confidence tier**
+  ([V]/[R]/[A]/[D]); (d) a `[REPORTED]`-only load-bearing requirement is downgraded to
+  verify-before-build, never synthesized at parity with a verified one.
 
 ## Run log
 
 | date | slug | sources | untold reqs | outcome |
 |---|---|---|---|---|
 | 2026-07-07 | claude-usage-os | ~30 found / 18 verified | 26 | mode: deep — PRD + seed shipped; R2 verify infra-blocked (salvaged+tagged); project reset 2026-07-09 |
+| 2026-07-09 | agentic-os | R1 26 + R2 28 fetched / 22+12 verified claims | 36 | mode: deep — PRD + seed shipped (rubric_check PASS); R2 verify limit-truncated (salvaged+tagged); 4 rate-limit resumes + synthesize try/catch patch; R3/R4 single-agents; landed on PR #1 |
