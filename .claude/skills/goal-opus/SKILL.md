@@ -303,6 +303,14 @@ a reviewable diff. Do not prune inline during a goal run.
   forced a double-resume to refute idempotency. Regression trigger: after any change to the
   journal/resume/ledger path, re-run RP1/RP2/RP3 (crash + resume + re-resume no-op) on a throwaway
   repo. Baseline: 1 iteration to all-pass.
+- [2026-07-12] agentic-os-P3 — `goals/2026-07-12-p3-safe-autonomy/criteria.json`
+  (5 criteria SP1–SP5, 7 banned outcomes). Safe autonomy on top of P2: real undo/rollback + land-gate
+  (catches a gamed evidence-less pass) + approve-before-land toggle + classifier-decline fallback +
+  least-privilege allowlists. Passed in 1 iteration. Extended the mock with a `gamed_pass` affordance;
+  the verifier landed/gamed/**dirtied**/undid throwaway repos itself — the sharp check is BP7 (undo on
+  a dirty user tree must REFUSE, not `git reset --hard` over user work). Regression trigger: after any
+  change to undo/land-gate/decline, re-run SP1 (undo restores HEAD) + SP2 (gamed pass flagged) + BP7
+  (dirty-tree undo refuses). Baseline: 1 iteration to all-pass.
 
 ## Run log
 
@@ -317,3 +325,4 @@ a reviewable diff. Do not prune inline during a goal run.
 | 2026-07-12 | agentic-os-P0 | 1 | success (first real TARGET build; home-vs-target clean) |
 | 2026-07-12 | agentic-os-P1 | 1 | success (orchestrator §4d; mock-runner verify substrate) |
 | 2026-07-12 | agentic-os-P2 | 1 | success (durable journaling + idempotent resume; crash-tested) |
+| 2026-07-12 | agentic-os-P3 | 1 | success (undo/land-gate/decline; dirty-tree-undo refusal tested) |

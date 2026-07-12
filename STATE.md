@@ -274,3 +274,18 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   scoping plausibly explain the clean convergence). NEXT: `/goal-opus` **P3 (Safe autonomy)** —
   rollback/undo + optional approve-before-land gate, least-privilege allowlists, classifier-decline
   branch (scopes master-seed C9/C10 + reqs U22/U23/U33; `undo` is still a stub until then).
+- [2026-07-12] `/goal-opus` **P3 (Safe autonomy)** — SUCCESS in **1 iteration**. Extended the P2
+  orchestrator in `D:\horil\agentic-os` (commit `3148662`, FRAMEWORK_VERSION 0.4.0): a real `undo`/
+  rollback (undo pointer = pre-change SHA, BP7-safe dirty-tree refusal, reflog-recoverable — replacing
+  the P2 stub), an evidence-checking land-gate that flags a gamed pass (`gamed_pass` mock affordance),
+  an optional `--approve-before-land` toggle + `approve` verb, a classifier-decline fallback branch
+  (routing event, never retried), and env-gated least-privilege (no blind `--dangerously-skip-
+  permissions`; verifier stays read-only). goal-verifier PASS on all 5 criteria (SP1–SP5) + 7 banned
+  outcomes, re-run on fresh throwaway repos it landed/gamed/**dirtied**/undid itself — BP7 verified by
+  a dirty-tree undo that refused with user work intact — `goals/2026-07-12-p3-safe-autonomy/reports/
+  iter-1.json`; tests 64/64 P3 + 64/64 P2 + 82/82 P1 + 53/53 P0. Home clean (BP1). **Four phases
+  (P0–P3), four first-try 1-iteration passes** — promotion-gate D2 item (2) "one real MULTI-iteration
+  goal" is STILL unmet; the verifier genuinely refuted each and found nothing, so this reads as real
+  quality (tight scoping + mock substrate), not weak rubrics. NEXT: `/goal-opus` **P4 (Observability
+  & notification)** — tailable run-status polish + minimal push notify (master-seed C-none-new + reqs
+  U9/U35); then §8 FINAL ACCEPTANCE (the LIVE end-to-end run every phase deferred).
