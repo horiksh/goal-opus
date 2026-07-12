@@ -1,0 +1,37 @@
+{
+  "iteration": 1,
+  "criteria": [
+    { "id": "RP1", "verdict": "pass",
+      "evidence": "run success -> goal_end(success) + STATE row + checkpoint 'goal S1 success'. abort -> goal_end(aborted) + STATE row + checkpoint. crash_after_iteration:1 -> exit 137; run-log ends at iter_begin(iter 1), run-status state=running in_flight={goal:C1,iter:1} ended_at=None, session_end count=0, mock-crashed marker present. Durable record, not zero write-back.",
+      "refutation_attempted": "Inspected run-log.jsonl/run-status.json/git log immediately after the 137 exit; durable iter_begin + non-null in_flight marker present; pre-crash goal carried its full checkpoint." },
+    { "id": "RP2", "verdict": "pass",
+      "evidence": "2-goal fixture (g1 success, g2 crash_after_iteration:1). Initial run exit 137 after g1 full write-back. resume -> exit 0; run-log: single goal_start g1 (count 1), one resume_skip g1, goal_resume g2 from_iter 0, goal_end g2 success, session_end success. git log: exactly one g1 checkpoint + one g2 checkpoint.",
+      "refutation_attempted": "Grepped for a duplicate goal_start/checkpoint for g1 after resume (exactly 1 each); confirmed g1 reached via resume_skip, not re-executed; session reached session_end." },
+    { "id": "RP3", "verdict": "pass",
+      "evidence": "After crash+resume: goal_start g1=1, goal_end g1=1, g1 STATE rows=1, g1 checkpoints=1, ledger keys=[g1:1:success, g2:1:success]. iteration events=2 == goal_end events=2. Second resume -> 'already terminal ... Clean no-op'; log lines 15->15, checkpoints 2->2, STATE rows 2->2 (unchanged).",
+      "refutation_attempted": "Re-ran resume on the completed run to force a double-apply; log-line/checkpoint/row counts identical before/after. Diffed STATE.md: only the g2 row appended, g1 row byte-unchanged (no re-flip)." },
+    { "id": "RP4", "verdict": "pass",
+      "evidence": "note routed 3 secrets. grep for AKIAEXAMPLE1234567890 / hunter2 / wJalrXUtnFEMI over STATE.md + .agentic-os/ all rc=1 (absent). run-log note shows api_key=[REDACTED] password=[REDACTED] aws_secret_access_key=[REDACTED]. secret_scan over STATE.md+logs+json = NONE(0). Blunt grep hits only benign token_budget/no_progress_threshold field names + [REDACTED] placeholders.",
+      "refutation_attempted": "Injected the criterion literal + two extra secret forms into note (routes into iteration + goal_end events); searched every write target verbatim; none survived. Redaction is on the serialized line so any field carrying a secret is scrubbed." },
+    { "id": "RP5", "verdict": "pass",
+      "evidence": "export --zip with socket.socket monkey-patched to raise -> rc=0; wrote memory-export-<ts>/ containing STATE.md, memory/notes.md, .agentic-os/{run-log.jsonl,run-status.json,writeback-ledger.json}, export-manifest.json + a .zip. secret AKIALEAK9999SECRET absent (rc=1); secret_scan over export = NONE(0). shutil/stdlib zip only.",
+      "refutation_attempted": "Blocked all sockets before export to force a failure if any network call occurred (none). Verified the copy is complete+readable and inherited the pre-write scrub." },
+    { "id": "RP6", "verdict": "pass",
+      "evidence": "Grew memory to 5145 bytes. status --memory-threshold-bytes 1000 -> 'WARNING: memory footprint 5145 bytes EXCEEDS the 1000-byte threshold ... WARNING ONLY - memory is NOT auto-consolidated or rewritten.' --memory-threshold-bytes 10000000 -> 0 warnings. md5 of STATE.md and memory/big.md identical before and after both status calls.",
+      "refutation_attempted": "md5-hashed memory files before/after the warning path -> UNCHANGED (no auto-consolidation). Below-threshold suppresses the warning." },
+    { "id": "RP7", "verdict": "pass",
+      "evidence": "memory/creds.md with api_key=AKIA_ATREST_9999_LEAK among 3 unrelated lines. scrub --file creds.md -> '1 line(s) redacted'. diff shows only line 2 -> api_key=[REDACTED]. secret absent (rc=1); benign 'token_budget=200000' line preserved verbatim.",
+      "refutation_attempted": "Included a benign token_budget= line to test over-redaction; the \\btoken\\b boundary leaves token_budget untouched. Diff confirms exactly one line changed, rest byte-preserved." }
+  ],
+  "banned_outcomes": [
+    { "id": "BP1", "triggered": false, "evidence": "`git -C D:/horil/agent status --porcelain` -> only '?? goals/2026-07-12-p2-durable-memory-writeback/' (criteria.json/GOAL.md/PROGRESS.md). No agentic_os.py / cli/ / .py product source in the home. All product under D:/horil/agentic-os." },
+    { "id": "BP2", "triggered": false, "evidence": "RP4/RP5: injected secret literals never appear verbatim in STATE.md/run-log/memory/export; secret_scan over all state/log/export files = 0 real hits; note redacted pre-write." },
+    { "id": "BP3", "triggered": false, "evidence": "RP1 crash (exit 137) left run-log iter_begin + non-null in_flight + no session_end (durable crash/recovery marker); pre-crash goals carried full write-back; success/abort each wrote goal_end+STATE row+checkpoint." },
+    { "id": "BP4", "triggered": false, "evidence": "RP3: after crash+resume g1 has exactly one STATE row / checkpoint / goal_end / ledger key; second resume clean no-op (counts unchanged). No terminal flip twice." },
+    { "id": "BP5", "triggered": false, "evidence": "grep DURABILITY.md/ORCHESTRATOR.md/INSTALL.md/README.md/cli: every gate mention framed as 'anti-drift guardrail (prompt-level), not a security or correctness guarantee ... gameable'. No security-boundary claim." },
+    { "id": "BP6", "triggered": false, "evidence": "criteria.json: status=in_progress, all 7 criteria failing/evidence=null; none set to success; maker did not declare done. (PROGRESS.md/GOAL.md not read.)" },
+    { "id": "BP7", "triggered": false, "evidence": "grep cli: no socket/requests/urllib/http/ftplib/smtplib imports or .connect/urlopen; no git push/remote/fetch/clone/pull - checkpoints are git add+commit local only. export ran to completion under an active socket-blocking guard (rc=0); scrub/resume file+local-git only." }
+  ],
+  "overall": "PASS",
+  "diff_for_maker": []
+}

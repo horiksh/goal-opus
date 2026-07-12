@@ -259,3 +259,18 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   both P0 and P1 converged in 1. NEXT: `/goal-opus` **P2 (Durable memory & write-back)** — crash/cancel
   write-back guarantee, idempotent resume from checkpoint + run log, export, secret-scrub, size-warning
   (scopes master-seed C2/C4/C8 + reqs U5/U6/U7/U10/U21/U30/U31/U32).
+- [2026-07-12] `/goal-opus` **P2 (Durable memory & write-back)** — SUCCESS in **1 iteration**.
+  Extended the P1 orchestrator in `D:\horil\agentic-os` (commit `7d943fe`, FRAMEWORK_VERSION 0.3.0):
+  incremental idempotent journaling (fsync'd `iter_begin` + `in_flight` crash marker before each step),
+  a real crash-durable `resume` (replacing the P1 stub) with idempotent replay keyed by
+  `(goal,iter,state)` via a `writeback-ledger.json` + duplicate-proof STATE.md rows, a pre-write secret
+  scrub + at-rest `scrub` verb, an `export` backup, and a `status` size-threshold WARNING. Mock gained
+  `crash_after_iteration` + `note`. goal-verifier PASS on all 7 criteria (RP1–RP7) + 7 banned outcomes,
+  each re-run on fresh throwaway repos it crashed itself (forced a double-resume; blocked all sockets
+  during export) — `goals/2026-07-12-p2-durable-memory-writeback/reports/iter-1.json`; tests 64/64 P2 +
+  82/82 P1 + 53/53 P0. Home clean (BP1). Promotion-gate D2 item (2) "one real **multi-iteration** goal"
+  is STILL pending — P0, P1, and P2 all converged in 1 (three substantial phases, zero re-iterations;
+  worth watching whether rubrics are adversarial enough, though the mock-runner substrate + tight
+  scoping plausibly explain the clean convergence). NEXT: `/goal-opus` **P3 (Safe autonomy)** —
+  rollback/undo + optional approve-before-land gate, least-privilege allowlists, classifier-decline
+  branch (scopes master-seed C9/C10 + reqs U22/U23/U33; `undo` is still a stub until then).

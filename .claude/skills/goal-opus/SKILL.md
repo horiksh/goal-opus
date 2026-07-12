@@ -295,6 +295,14 @@ a reviewable diff. Do not prune inline during a goal run.
   handle is the permanent test substrate + BP8 guards the real-default path. Regression trigger:
   after any change to the control loop or budgets, re-run the mock-driven criteria (QP2/QP3/QP6/
   QP7) on a throwaway repo. Baseline: 1 iteration to all-pass.
+- [2026-07-12] agentic-os-P2 — `goals/2026-07-12-p2-durable-memory-writeback/criteria.json`
+  (7 criteria RP1–RP7, 7 banned outcomes). Durable memory & write-back on top of P1: crash-durable
+  incremental journaling + idempotent resume + secret-scrub + export + size-warning. Passed in 1
+  iteration. Extended the mock substrate with `crash_after_iteration` (abrupt `os._exit`) so
+  crash/resume/idempotency are deterministically testable; the verifier crashed runs itself and
+  forced a double-resume to refute idempotency. Regression trigger: after any change to the
+  journal/resume/ledger path, re-run RP1/RP2/RP3 (crash + resume + re-resume no-op) on a throwaway
+  repo. Baseline: 1 iteration to all-pass.
 
 ## Run log
 
@@ -308,3 +316,4 @@ a reviewable diff. Do not prune inline during a goal run.
 | 2026-07-08 | retrieval-invariant | 1 | success (D8 Goal 3; lens + counter-guard live) |
 | 2026-07-12 | agentic-os-P0 | 1 | success (first real TARGET build; home-vs-target clean) |
 | 2026-07-12 | agentic-os-P1 | 1 | success (orchestrator §4d; mock-runner verify substrate) |
+| 2026-07-12 | agentic-os-P2 | 1 | success (durable journaling + idempotent resume; crash-tested) |
