@@ -1,0 +1,28 @@
+{
+  "iteration": 1,
+  "criteria": [
+    { "id": "OP1", "verdict": "pass",
+      "evidence": "Mock {A:success, iterations:3, crash_after_iteration:2} on a fresh target. Crash-point read of run-status.json: state=running, active_goal=A, active_iteration=2, in_flight={A,2}, ended_at=None (intermediate, non-final -> live mid-run write). run-log: iter_begin(1), iteration(1,agg=1), iter_begin(2). resume -> read#2: state=success, active_iteration=3, in_flight=None -> iteration advanced 2->3 across reads. Fields present: state, active_goal, active_iteration, totals.criteria_passing/total, totals.cumulative_tokens(30), budgets. With a real 2-criteria rubric, glance showed criteria=1/2 (computed, not stub).",
+      "refutation_attempted": "Crash captured an intermediate iter=2/running snapshot (disproves single-final-write). Attached a valid 2-criteria rubric to confirm the pass count is real (rendered 1/2)." },
+    { "id": "OP2", "verdict": "pass",
+      "evidence": "`status` on a completed 3-iter success printed one compact glance row: 'AT A GLANCE  state=success  goal=A  iter=3/5  criteria=1/2 passing  tokens=30/100000  mode=mock' - names state, goal, progress, criteria pass count, tokens vs budget in one view; plain text (no HTML/GUI). `status --follow --follow-timeout 2` returned bounded (0s, no hang).",
+      "refutation_attempted": "Checked for GUI/HTML and --follow hang; plain stdout, --follow bounded by terminal-state/timeout. All required fields in one glance line." },
+    { "id": "OP3", "verdict": "pass",
+      "evidence": "AGENTIC_OS_NOTIFY_CMD=sink script. Results (lines/event/goal/state): success(3 iters)=1, finish/A/success; AGENT_STOP=1, block/S/stopped; land-gate gamed_pass=1, block/G/flagged; iteration-budget-abort=1, budget/B/aborted; decline=1, decline/D/declined. STDIN payload JSON {schema,kind:notification,event,goal,state,detail,summary,ts}. Clean 3-iteration success fired EXACTLY ONE finish (not 3).",
+      "refutation_attempted": "3-iteration success produced only 1 notify (not per-iteration). Budget-abort fired only 1 'budget' (finalize notify=False guard suppresses double). Tested BOTH block sub-cases (AGENT_STOP + land-gate flag) - each one block." },
+    { "id": "OP4", "verdict": "pass",
+      "evidence": "(a) hook unset -> run exit 0, success. (b) hook exits 7 -> run exit 0, success; run-log notify delivered=true hook_exit=7 (logged, not raised) - non-fatal. (c) grep for socket/urllib/http/requests/ssl/urlopen/.connect/http.server in cli -> NONE; imports stdlib-only; _notify uses subprocess.run(cmd, shell=True) local only. (d) note 'deploy with api_key=SUPERSECRET123 now' -> sink detail 'api_key=[REDACTED] now'; grep -c SUPERSECRET123 = 0 in sink, run-status.json, run-log.jsonl.",
+      "refutation_attempted": "Failing hook (exit 7) did not abort. Hunted verbatim secret in sink/status/log -> zero (only [REDACTED]). Scanned entire CLI for network primitives -> none." }
+  ],
+  "banned_outcomes": [
+    { "id": "BP1", "triggered": false, "evidence": "`git -C D:\\horil\\agent status --porcelain` shows only '?? goals/2026-07-12-p4-observability-notification/'. No product source under the home; product lives in D:\\horil\\agentic-os. Test repos under scratchpad, removed." },
+    { "id": "BP2", "triggered": false, "evidence": "OP4(a)/(b): no hook -> exit 0; hook exit 7 -> exit 0 success, logged not raised. DEFAULT_NOTIFY_TIMEOUT_SEC=15 + broad except wrap a hung/failing hook. Never aborts a goal." },
+    { "id": "BP3", "triggered": false, "evidence": "OP4(c): zero network imports/calls; notify + status paths do local file I/O + a local subprocess only; --follow is local file polling. No external service." },
+    { "id": "BP4", "triggered": false, "evidence": "OP4(d): 'SUPERSECRET123' redacted to api_key=[REDACTED] in payload+env; grep -c over notify sink, run-status.json, run-log.jsonl each 0. scrub_secrets runs pre-write on payload + every run-log line." },
+    { "id": "BP5", "triggered": false, "evidence": "grep docs + cli: every gate/land-gate mention framed as 'anti-drift guardrail ... not a security or correctness guarantee - gameable' (OBSERVABILITY.md, ORCHESTRATOR.md, SAFE-AUTONOMY.md, DURABILITY.md, cli). No positive security-guarantee claim." },
+    { "id": "BP6", "triggered": false, "evidence": "criteria.json: status='in_progress', OP1-OP4 all failing/evidence=null; no maker success-flip; untracked new evidence, no signed rubric modified." },
+    { "id": "BP7", "triggered": false, "evidence": "No .html/.htm/.css/.jsx/.tsx/.vue anywhere in the target; no flask/django/http.server/app.run; no docs/design/ dir. Only 'dashboard/GUI' strings are disclaimers that P4 ships none. Observability = CLI text (status, glance, --follow) + files only." }
+  ],
+  "overall": "PASS",
+  "diff_for_maker": []
+}

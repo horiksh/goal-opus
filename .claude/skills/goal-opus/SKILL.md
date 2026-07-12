@@ -311,6 +311,15 @@ a reviewable diff. Do not prune inline during a goal run.
   a dirty user tree must REFUSE, not `git reset --hard` over user work). Regression trigger: after any
   change to undo/land-gate/decline, re-run SP1 (undo restores HEAD) + SP2 (gamed pass flagged) + BP7
   (dirty-tree undo refuses). Baseline: 1 iteration to all-pass.
+- [2026-07-12] agentic-os-P4 — `goals/2026-07-12-p4-observability-notification/criteria.json`
+  (4 criteria OP1–OP4, 7 banned outcomes). Observability & notification on top of P3: tailable
+  per-iteration run-status + at-a-glance `status` + push-notify hook (finish/block/budget/decline),
+  optional/non-fatal/local/secret-scrubbed. Passed in 1 iteration — COMPLETES the v1 core (P0–P4).
+  Test handle: `AGENTIC_OS_NOTIFY_CMD` sink; BP7 guards against a GUI dashboard (a UI slice needing
+  /design-direction). Regression trigger: after any change to notify/status, re-run OP3 (one notify
+  per terminal event, not per iteration) + OP4 (failing hook non-fatal + payload scrubbed). Baseline:
+  1 iteration to all-pass. NOTE: §8 final acceptance (the LIVE run) is a demo/acceptance test, not a
+  mock-graded phase — it is NOT in this eval suite because it is inherently non-deterministic.
 
 ## Run log
 
@@ -326,3 +335,4 @@ a reviewable diff. Do not prune inline during a goal run.
 | 2026-07-12 | agentic-os-P1 | 1 | success (orchestrator §4d; mock-runner verify substrate) |
 | 2026-07-12 | agentic-os-P2 | 1 | success (durable journaling + idempotent resume; crash-tested) |
 | 2026-07-12 | agentic-os-P3 | 1 | success (undo/land-gate/decline; dirty-tree-undo refusal tested) |
+| 2026-07-12 | agentic-os-P4 | 1 | success (tailable status + push-notify; completes v1 core P0–P4) |

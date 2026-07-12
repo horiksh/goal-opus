@@ -289,3 +289,18 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   quality (tight scoping + mock substrate), not weak rubrics. NEXT: `/goal-opus` **P4 (Observability
   & notification)** — tailable run-status polish + minimal push notify (master-seed C-none-new + reqs
   U9/U35); then §8 FINAL ACCEPTANCE (the LIVE end-to-end run every phase deferred).
+- [2026-07-12] `/goal-opus` **P4 (Observability & notification)** — SUCCESS in **1 iteration**.
+  Extended the P3 orchestrator in `D:\horil\agentic-os` (commit `fc8200e`, FRAMEWORK_VERSION 0.5.0):
+  a tailable per-iteration `run-status.json` + a compact one-line `status` glance + bounded
+  `status --follow`, and a push-notify hook (`AGENTIC_OS_NOTIFY_CMD`) fired once per
+  finish/block/budget/decline — optional, non-fatal, local, secret-scrubbed (payload through the P2
+  scrub). goal-verifier PASS on all 4 criteria (OP1–OP4) + 7 banned outcomes, re-run on throwaway
+  repos (it crash-captured an intermediate status to prove live writes, forced a nonzero-exit hook,
+  routed a secret) — `goals/2026-07-12-p4-observability-notification/reports/iter-1.json`; tests 61/61
+  P4 + P0/P1/P2/P3 unchanged. Home clean (BP1). **v1 CORE (P0–P4) COMPLETE — five phases, five
+  first-try 1-iteration passes.** Promotion-gate D2 item (2) "one real MULTI-iteration goal" remains
+  unmet across the whole build. NEXT: **§8 FINAL ACCEPTANCE** — the LIVE end-to-end run (`agentic-os
+  run` driving real goal-opus loops with `claude` on PATH, ≥2 goals, bounded/steerable/resumable/
+  reversible), verified two ways. Inherently non-deterministic (real LLM) → a demo/acceptance run,
+  NOT a mock-graded goal-opus phase — the one thing every phase deferred. P5+ (cloud, concurrency,
+  dreaming, multi-target, cross-platform, adopter docs) → future PRDs.
