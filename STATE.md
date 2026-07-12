@@ -330,3 +330,14 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   hardening** /goal-opus goal (unwrap the envelope → parse the inner report; fix `_usage_tokens`;
   run-start claude preflight; document the permission opt-in for live runs) THEN re-run real §8. This
   is the self-improving loop WORKING: five mock-green phases, and the live probe caught the real gap.
+- [2026-07-13] `/goal-opus` **P8 (real-runner hardening)** — SUCCESS in **1 iteration** (the fix born
+  from the §8 finding). Committed in `D:\horil\agentic-os` (`671c82a`): `_extract_agent_report` unwraps
+  the `claude -p --output-format json` envelope + parses the markdown-fenced report in `result`;
+  `_usage_tokens` sums envelope `input_tokens+output_tokens`; `cmd_run` preflights `which(claude)`
+  before journaling; docs state the live-run write opt-in. Verified deterministically against a REAL
+  captured envelope — and the goal-verifier **re-captured its own fresh envelope** to defeat a
+  hand-built fixture (BP2) — `goals/2026-07-13-p8-real-runner-hardening/reports/iter-1.json`; test_p8
+  30/30, P0–P4 unchanged. Sign-off wasn't returned so I proceeded unattended per protocol (recorded in
+  GOAL.md). The §8 blocker is now RESOLVED in the target's Open failures. NEXT (in progress): the LIVE
+  §8 re-run — real goals through the live loop with `claude` on PATH + the permission opt-in — the true
+  acceptance the fix enables (non-deterministic; may surface more).

@@ -1,0 +1,30 @@
+{
+  "iteration": 1,
+  "criteria": [
+    { "id": "HP1", "verdict": "pass",
+      "evidence": "ao._extract_agent_report on the committed fixture returned an INNER report {blockers,completeness,evidence,files_changed,summary}, NOT envelope keys (type/subtype/result); files_changed==['greet.py']; unwrap(dict)==unwrap(raw); fixture result is ```json-fenced, usage has input+output but no total_tokens. Pure function (no I/O).",
+      "refutation_attempted": "Asserted no type/subtype/result keys; confirmed a bare report passes through unchanged (not blindly stripping a fixed layer). Independently captured a FRESH envelope via C:/Users/horil/.local/bin/claude.exe --output-format json; unwrap returned inner keys, files_changed==['a.txt'], no envelope leak - not overfit to the fixture." },
+    { "id": "HP2", "verdict": "pass",
+      "evidence": "ao._usage_tokens(env) on the fixture returned 100 == input_tokens(3)+output_tokens(97); 'total_tokens' absent; >0. On the fresh independent capture returned 45 (>0). Code sums input+output when either present, falls back to total_tokens only when neither exists.",
+      "refutation_attempted": "Confirmed not 0 / not a total_tokens lookup; verified the fallback (total_tokens-only shape -> 42) and {}/None -> 0 don't interfere with the real-shape path." },
+    { "id": "HP3", "verdict": "pass",
+      "evidence": "Fresh git target in scratchpad, enqueued g1 (exit 0), ran `run --target <t> --iteration-budget 3` in REAL mode (all AGENTIC_OS_* stripped) with PATH scrubbed of claude (which(claude)=None) but git kept. Result: exit 1; stderr \"ERROR: 'claude' CLI not found on PATH - the real runner cannot drive a live goal-opus iteration...\"; run-status.json ABSENT. Preflight (cmd_run:1891) fires BEFORE _control_loop (1901).",
+      "refutation_attempted": "Read .agentic-os/run-status.json after the refusal - the file does not exist at all (stricter than 'not running'). Kept git on PATH so the refusal is the missing claude, not a git-precondition failure." },
+    { "id": "HP4", "verdict": "pass",
+      "evidence": "_claude_permission_flags() -> [] with the env unset, ['--dangerously-skip-permissions'] with AGENTIC_OS_DANGEROUSLY_SKIP_PERMISSIONS=1. Docs state the requirement: ORCHESTRATOR.md:134-142 (live-run write opt-in: the env OR a .claude/settings*.json allowlist; skip flag stays env-gated OFF by default) + SAFE-AUTONOMY.md:116-127 (prefers the narrower allowlist).",
+      "refutation_attempted": "grep cli/*.py for '--dangerously-skip-permissions': only inside the env-gated helper (L840), splatted via *_claude_permission_flags() (L1206) - no unconditional path. Doc names BOTH the env var AND the settings allowlist." },
+    { "id": "HP5", "verdict": "pass",
+      "evidence": "From the target: test_p0 53/53, test_p1 82/82, test_p2 64/64, test_p3 64/64, test_p4 61/61, test_p8 30/30 - all PASS, matching the established counts. MockRunner.run_iteration (L1093-1130) builds IterationOutcome directly and never calls _invoke_claude/_extract_agent_report/_usage_tokens, so the adapter cannot affect the mock path.",
+      "refutation_attempted": "Read MockRunner in full (no reference to the new functions); HP5 mock smoke (exit 0, journaled success, cumulative_tokens==100) passed; counts match exactly, no drift." }
+  ],
+  "banned_outcomes": [
+    { "id": "BP1", "triggered": false, "evidence": "`git -C D:/horil/agent status --porcelain` shows only '?? goals/2026-07-13-p8-real-runner-hardening/'. STATE.md unmodified. All product code (cli, tests, docs, fixtures) under D:/horil/agentic-os." },
+    { "id": "BP2", "triggered": false, "evidence": "Committed fixture carries real envelope keys: session_id, total_cost_usd, duration_ms, modelUsage, usage.cache_creation_input_tokens+cache_read_input_tokens, and a markdown-fenced result - not a bare stub. A fresh independent capture produced the IDENTICAL shape and the unwrap worked on it - genuine live-shaped, not hand-built." },
+    { "id": "BP3", "triggered": false, "evidence": "All prior suites pass at established counts (p0 53, p1 82, p2 64, p3 64, p4 61); mock path byte-behavior-unchanged. See HP5." },
+    { "id": "BP4", "triggered": false, "evidence": "Skip flag only from env-gated _claude_permission_flags() (default []), splatted at L1206; grep finds no unconditional/hardcoded occurrence." },
+    { "id": "BP5", "triggered": false, "evidence": "criteria.json untracked in home; status 'in_progress', all HP1-HP5 still 'failing'; no maker success/passing flip." },
+    { "id": "BP6", "triggered": false, "evidence": "grep guarantee/security across docs/ + cli/: every gate mention framed as an anti-drift guardrail explicitly NOT a security/correctness guarantee (SAFE-AUTONOMY.md:126, ORCHESTRATOR.md:10-11, etc.). No boundary claim." }
+  ],
+  "overall": "PASS",
+  "diff_for_maker": []
+}

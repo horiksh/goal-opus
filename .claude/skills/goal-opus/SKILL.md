@@ -319,6 +319,14 @@ a reviewable diff. Do not prune inline during a goal run.
   a dirty user tree must REFUSE, not `git reset --hard` over user work). Regression trigger: after any
   change to undo/land-gate/decline, re-run SP1 (undo restores HEAD) + SP2 (gamed pass flagged) + BP7
   (dirty-tree undo refuses). Baseline: 1 iteration to all-pass.
+- [2026-07-13] agentic-os-P8 — `goals/2026-07-13-p8-real-runner-hardening/criteria.json`
+  (5 criteria HP1–HP5, 6 banned outcomes). Real-runner hardening: unwrap the live `claude -p
+  --output-format json` envelope + parse the markdown-fenced report, envelope-usage tokens, run-start
+  `which(claude)` preflight, live-run permission doc. Born from §8's live finding (mock-green hid the
+  broken adapter). Passed in 1 iteration. Grounded in a REAL captured `claude` envelope fixture (BP2:
+  fixture must be genuine, not hand-built — the verifier re-captured its own to confirm). Regression
+  trigger: after any change to the claude-turn adapter, re-run HP1 (unwrap inner report) + HP2
+  (envelope usage) on the real fixture + HP5 (P0–P4 no regression). Baseline: 1 iteration to all-pass.
 - [2026-07-12] agentic-os-P4 — `goals/2026-07-12-p4-observability-notification/criteria.json`
   (4 criteria OP1–OP4, 7 banned outcomes). Observability & notification on top of P3: tailable
   per-iteration run-status + at-a-glance `status` + push-notify hook (finish/block/budget/decline),
@@ -344,3 +352,4 @@ a reviewable diff. Do not prune inline during a goal run.
 | 2026-07-12 | agentic-os-P2 | 1 | success (durable journaling + idempotent resume; crash-tested) |
 | 2026-07-12 | agentic-os-P3 | 1 | success (undo/land-gate/decline; dirty-tree-undo refusal tested) |
 | 2026-07-12 | agentic-os-P4 | 1 | success (tailable status + push-notify; completes v1 core P0–P4) |
+| 2026-07-13 | agentic-os-P8 | 1 | success (real-runner hardening; born from the §8 live finding) |
