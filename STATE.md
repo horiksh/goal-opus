@@ -27,6 +27,13 @@
 - [2026-07-08] Ponytail's benchmark numbers are self-reported against a no-skill
   baseline, and the project's original headline benchmark was retracted as inflated
   (its own benchmarks file, 3-0 verified). Star-count/ecosystem framing unconfirmed.
+- [2026-07-12] NTFS directory junctions are creatable on this Windows box WITHOUT
+  elevation in user/project/temp dirs — agentic-os P0 install created goal-opus skill
+  junctions (pwsh `LinkType=Junction`, `fsutil reparsepoint query` exit 0) and the copy
+  fallback (`AGENTIC_OS_NO_JUNCTION=1`) produced a byte-identical (sha256-matched) copy.
+  De-risks the PRD's U24/U25 §9 assumption ("junctions need privilege and can fail").
+  Also verified: removing a junction via `rmdir`/`os.rmdir` does NOT follow the link to
+  delete the canonical payload source — round-trip install→uninstall is source-safe.
 
 ## General rules
 - Define "done" as an executable, Default-FAIL rubric BEFORE any making. A criterion
@@ -88,6 +95,14 @@
   alternatives: design-after-backend (UI-driven backend needs arrive too late — the
   usage-os PRD's U9/U10 proved it; that PRD was reset 2026-07-09, evidence in git
   history) and unanchored goal-loop UI (converges on functional-generic). Motion/interactive feel stays human-judged at slice demos.
+- **D9** [2026-07-12] The agentic-os PRODUCT lives in its own TARGET repo
+  `D:\horil\agentic-os` (fresh, git base 31ddc40), NEVER the home — enforces B1/D5
+  (product ≠ home; verified BP1-clean this run). Payload model = **self-contained
+  framework**: agentic-os vendors its OWN copy of the goal-opus skill/agents/tools/
+  templates and installs THAT (portable, fresh-clone, no runtime dep on the home), per
+  PRD S1. Known tension (accepted for v1): the vendored goal-opus copy can drift from
+  the home's self-editing skill; a home→framework sync mechanism is deferred to a later
+  phase, not P0. User-signed both decisions at Phase 0.
 
 ## Open failures
 _(none — the abort-probe entry closed 2026-07-07: abort path verified and reported;
@@ -206,3 +221,14 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   36 untold, 11 banned, 12 seeded criteria; rubric_check PASS). Landed on PR #1
   (github.com/horiksh/goal-opus/pull/1). NEXT: `/goal-opus` at **P0 (Bootstrap & install)** against a
   chosen TARGET. Eval-suite + Run-log entries added to prd/SKILL.md.
+- [2026-07-12] `/goal-opus` **P0 (Bootstrap & install)** — SUCCESS in **1 iteration** (first real
+  product-code goal against a SEPARATE TARGET). TARGET = `D:\horil\agentic-os` (new repo); payload =
+  self-contained framework (D9). Built + committed there (`9aeb876`): dual-shell (PowerShell+Git-Bash)
+  `init`/`install`/`uninstall`/`upgrade` CLI, git-precondition, preflight + schema-version, and an
+  NTFS-junction-with-copy-fallback install mechanic driven by a relative-path manifest; vendored
+  goal-opus payload; `tests/test_p0.py` 53/53. goal-verifier PASS on all 8 criteria (CP1–CP8) + all 6
+  banned outcomes clear, each re-run independently on fresh throwaway repos
+  (`goals/2026-07-12-p0-bootstrap-install/reports/iter-1.json`). Home stayed clean (BP1 — only run
+  evidence landed here). Promotion gate D2 item (2) "one real **multi-iteration** goal" is STILL
+  pending — this converged in 1. NEXT: `/goal-opus` **P1 (Orchestrator control loop, §4d)** against the
+  same TARGET, scoping the C1/C3/C6/C7 + U3/U11/U12/U13/U15/U34 subset.

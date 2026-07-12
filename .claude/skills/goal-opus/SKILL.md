@@ -282,6 +282,12 @@ a reviewable diff. Do not prune inline during a goal run.
   (5 criteria incl. the three lens fixtures under `fixtures/`, 3 banned outcomes).
   Passed in 1 iteration. The fixtures double as the lens's permanent regression set:
   after any future edit to the lens text, re-classify all three.
+- [2026-07-12] agentic-os-P0 — `goals/2026-07-12-p0-bootstrap-install/criteria.json`
+  (8 criteria CP1–CP8, 6 banned outcomes). FIRST real product build against a SEPARATE
+  TARGET (`D:\horil\agentic-os`) — exercised the home-vs-target split end-to-end (BP1
+  clean). Passed in 1 iteration. Regression trigger: after any change to the install
+  mechanic, re-run the install round-trip criteria (CP4 junction / CP5 copy-fallback /
+  CP6 uninstall-no-residue) on a fresh throwaway repo. Baseline: 1 iteration to all-pass.
 
 ## Run log
 
@@ -293,3 +299,4 @@ a reviewable diff. Do not prune inline during a goal run.
 | 2026-07-07 | rubric-check | 1 | success (registered agents) |
 | 2026-07-08 | decision-ladder | 1 | success (D8 Goal 1) |
 | 2026-07-08 | retrieval-invariant | 1 | success (D8 Goal 3; lens + counter-guard live) |
+| 2026-07-12 | agentic-os-P0 | 1 | success (first real TARGET build; home-vs-target clean) |
