@@ -147,6 +147,18 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   control-flow tests with no real integration. Proven on agentic-os P1: 8/8 criteria graded
   deterministically; the guard (BP8) confirmed the real path is default and genuinely invokes
   `claude`. Reuse this shape for any phase whose real work is non-deterministic (e.g. P2 crash-resume).
+- [2026-07-13] **MOCK-VERIFIED ≠ LIVE-READY (the flip side of the lesson above).** All of agentic-os
+  P0–P4 passed via the deterministic mock, yet the FIRST live run (§8) proved the REAL runner is
+  broken against real `claude -p --output-format json`: the CLI returns an ENVELOPE
+  (`{type,subtype,result:"<the agent's JSON report as a STRING>",usage:{input_tokens,output_tokens,
+  cache_*}}`), but `_parse_last_json` returns that envelope AS the maker report, so
+  `files_changed`/`evidence`/`overall` read empty (no real goal can pass) and `_usage_tokens` reads a
+  `total_tokens` key the envelope lacks (→0). GENERAL RULE: a deterministic mock is a CONTROL-FLOW
+  harness, never evidence the real dependency works — the mock's very determinism HIDES the real
+  tool's output-format/permission/parsing surface. The live acceptance run against the REAL tool's
+  actual output is MANDATORY before "done"; a banned-outcome guard that the real path merely EXISTS
+  and is default (agentic-os BP8) is necessary but NOT sufficient — it proves the path is wired, not
+  that it parses reality. Confirmed for ~$0.05 with one `claude -p` probe rather than a doomed full run.
 
 ## Last session
 - [2026-07-07] Scaffolded the /goal-opus system and ran E2E verification. Run 1
@@ -304,3 +316,17 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   reversible), verified two ways. Inherently non-deterministic (real LLM) → a demo/acceptance run,
   NOT a mock-graded goal-opus phase — the one thing every phase deferred. P5+ (cloud, concurrency,
   dreaming, multi-target, cross-platform, adopter docs) → future PRDs.
+- [2026-07-13] **§8 FINAL ACCEPTANCE attempted → FAILED (as built, §8 cannot pass).** `claude` found at
+  `C:\Users\horil\.local\bin\claude.exe` (not on PATH; added for the attempt). Install + enqueue-2 +
+  the real-run refusal-without-claude all work; the LIVE loop does NOT — a cheap `claude -p
+  --output-format json` probe confirmed the real runner's live-integration bugs (see Lessons learned
+  2026-07-13): (1) `_invoke_claude`/`_parse_last_json` return the CLI's result ENVELOPE, not the agent
+  report nested in `result` → maker/verifier reports unreadable → every real goal aborts; (2)
+  `_usage_tokens` reads `total_tokens` (absent from the envelope) → token budget reads 0; (3) the
+  headless maker needs the `AGENTIC_OS_DANGEROUSLY_SKIP_PERMISSIONS` opt-in (or a settings allowlist)
+  to write files. Also a minor finding: the real run journals `iter_begin`/`in_flight` BEFORE it checks
+  `which(claude)`, leaving a stale `state=running` on a claude-less run (wants a run-start preflight).
+  These are recorded as Open failures in the TARGET STATE.md. NEXT (recommended): a **P8 real-runner-
+  hardening** /goal-opus goal (unwrap the envelope → parse the inner report; fix `_usage_tokens`;
+  run-start claude preflight; document the permission opt-in for live runs) THEN re-run real §8. This
+  is the self-improving loop WORKING: five mock-green phases, and the live probe caught the real gap.

@@ -266,6 +266,14 @@ a reviewable diff. Do not prune inline during a goal run.
   the improvement loop's memory stops being about the loop. Every product-code goal
   declares a TARGET (see `## Scope rules`); the home keeps only system, memory, and run
   evidence.
+- [2026-07-13 · agentic-os-§8] Do not treat mock-green phases as "live-ready" / done. A deterministic
+  mock (the mandated `AGENTIC_OS_MOCK_RUNNER`-style test handle) verifies CONTROL FLOW, not that the
+  real dependency's actual output parses — its determinism HIDES the real tool's format/permission
+  surface. agentic-os P0–P4 were all 1-iteration green, yet §8's first live `claude -p` call proved
+  the real runner never unwrapped the CLI's result envelope (every real goal would abort). Rule: a
+  banned-outcome guarding that the real path EXISTS + is default is necessary but NOT sufficient;
+  require a LIVE acceptance run against the real tool's true output before declaring a product done.
+  (Full root-cause in STATE.md Lessons learned 2026-07-13.)
 
 ## Eval suite
 
