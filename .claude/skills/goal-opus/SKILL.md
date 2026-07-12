@@ -288,6 +288,13 @@ a reviewable diff. Do not prune inline during a goal run.
   clean). Passed in 1 iteration. Regression trigger: after any change to the install
   mechanic, re-run the install round-trip criteria (CP4 junction / CP5 copy-fallback /
   CP6 uninstall-no-residue) on a fresh throwaway repo. Baseline: 1 iteration to all-pass.
+- [2026-07-12] agentic-os-P1 — `goals/2026-07-12-p1-orchestrator-control-loop/criteria.json`
+  (8 criteria QP1–QP8, 8 banned outcomes). Orchestrator control loop (§4d) built ON TOP of
+  P0 in the same TARGET. Passed in 1 iteration. First use of the mandated-mock-runner rubric
+  pattern (see STATE.md Lessons learned 2026-07-12): the deterministic `AGENTIC_OS_MOCK_RUNNER`
+  handle is the permanent test substrate + BP8 guards the real-default path. Regression trigger:
+  after any change to the control loop or budgets, re-run the mock-driven criteria (QP2/QP3/QP6/
+  QP7) on a throwaway repo. Baseline: 1 iteration to all-pass.
 
 ## Run log
 
@@ -300,3 +307,4 @@ a reviewable diff. Do not prune inline during a goal run.
 | 2026-07-08 | decision-ladder | 1 | success (D8 Goal 1) |
 | 2026-07-08 | retrieval-invariant | 1 | success (D8 Goal 3; lens + counter-guard live) |
 | 2026-07-12 | agentic-os-P0 | 1 | success (first real TARGET build; home-vs-target clean) |
+| 2026-07-12 | agentic-os-P1 | 1 | success (orchestrator §4d; mock-runner verify substrate) |

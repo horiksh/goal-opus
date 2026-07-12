@@ -1,0 +1,41 @@
+{
+  "iteration": 1,
+  "criteria": [
+    { "id": "QP1", "verdict": "pass",
+      "evidence": "Mock fixture [A_invalid(rubric missing criteria/banned), B_nomax(rubric missing max_iterations), C_valid] with --iteration-budget 50. run-log.jsonl: two 'refusal' events (A_invalid: 'rubric_check failed ... missing top-level key: criteria|banned_outcomes'; B_nomax: 'missing top-level key: max_iterations'); NO iteration event for A_invalid or B_nomax; C_valid produced goal_start->iteration(success)->goal_end. run-status goals: A_invalid=refused, B_nomax=refused, C_valid=success.",
+      "refutation_attempted": "Placed refused goals before AND around a valid one; neither logged any iteration or produced a git checkpoint, while the valid goal ran and committed." },
+    { "id": "QP2", "verdict": "pass",
+      "evidence": "outcome=abort,max_iterations=1 -> exactly 1 iteration event then goal_end aborted; no '\"iter\": 2'. Repeat max_iterations=3 -> exactly 3 then aborted; no '\"iter\": 4'. run-status transitions=[idle,running,aborted].",
+      "refutation_attempted": "Set changed=true so the no-progress detector could not pre-empt the bound; bound held exactly at N; aborted is a distinct terminal transition." },
+    { "id": "QP3", "verdict": "pass",
+      "evidence": "(a) token_budget=150, tokens=100/iter -> budget_abort reason=token-budget, run-status aborted cum_tokens=200>=150, follow-on goal never started. (b) --iteration-budget 3 with abort goal max_iterations=10 -> exactly 3 iterations, budget_abort reason=iteration-budget, agg_iters=3, next goal never ran. (c) budgets {iteration_budget:null, token_budget:null} -> exit 2, 'session_refused' reason=no-budget, state=refused, goals=[].",
+      "refutation_attempted": "Queued a follow-on goal after each budget trip; it never started. Confirmed both budgets are independent stop conditions and cumulative spend is surfaced; null-null reaches refusal before any goal." },
+    { "id": "QP4", "verdict": "pass",
+      "evidence": "Judged from artifacts ONLY. git log: checkpoints 'goal A success (iterations=2)' then 'goal B aborted (iterations=2)'. Pre-seeded STATE.md gained Run-log rows '| A | 2 | success |' then '| B | 2 | aborted |'. run-log.jsonl: goal_start A,2 iters,goal_end A(success) THEN goal_start B,2 iters,goal_end B(aborted) — A completes before B (single-threaded). run-status transitions A=[idle,running,success], B=[idle,running,aborted]; goals_run=2.",
+      "refutation_attempted": "Checked run-log for any B goal_start before A's goal_end (none); confirmed each goal produced all three write-back artifacts; used a pre-existing STATE.md so the change is a provable mutation." },
+    { "id": "QP5", "verdict": "pass",
+      "evidence": "Empty fixture '[]' with --iteration-budget 50 under 30s timeout: exit 0; run-log session_start(goals_queued:0)->idle(empty-queue)->session_end(idle); run-status state=idle, goals_run=0, aggregate_iterations=0; 0 iteration events; timeout never fired -> prompt return.",
+      "refutation_attempted": "Wrapped run in `timeout 30`; returned immediately with a clean idle no-op, no spin, zero iterations." },
+    { "id": "QP6", "verdict": "pass",
+      "evidence": "(a) G1(agent_stop_after=1) then G2; AGENT_STOP during G1 iter1 -> run-log: goal_start G1, iteration iter1, 'halt'(reason=agent-stop), goal_end G1 stopped, session_end stopped. G2 has NO goal_start; total iterations=1; git checkpoint 'goal G1 stopped' committed; run-status state=stopped abort_reason=agent-stop. (b) STEER.md pre-placed, 2-iteration goal -> exactly 1 'steer' event (folded once, deleted:true); STEER.md absent after run.",
+      "refutation_attempted": "G2 never started after AGENT_STOP (only in-flight iteration finished). Ran the goal 2 iterations to confirm STEER folded once and file deleted, not re-applied." },
+    { "id": "QP7", "verdict": "pass",
+      "evidence": "outcome=no-progress, changed=false, max_iterations=5, threshold=2: run-log 2 iterations (changed=false, needs-work) then goal_end state=no-progress; session_end no-progress. run-status transitions=[idle,running,no-progress], iters=2 < 5. Distinct from success AND from the max_iterations abort.",
+      "refutation_attempted": "Set max_iterations=5 well above threshold=2 so no-progress is unambiguously distinguishable from an abort; goal stopped at iter 2 with the dedicated no-progress terminal state." },
+    { "id": "QP8", "verdict": "pass",
+      "evidence": "enqueue-goal/run/status/pause/steer --help each exit 0 and name the verb. enqueue-goal exit 0; status exit 0 prints run-status (state=idle, mode, budgets, goals 1/0, iterations, cumulative tokens, criteria 0/1, artifact paths, queued goal). Unknown verb -> exit 2 'invalid choice'. resume -> 'deferred to P2' exit 0; undo -> 'deferred to P3' exit 0.",
+      "refutation_attempted": "Unknown verb returns non-zero; resume/undo are non-crashing declared stubs with documented deferral; status renders a legible artifact even before any run." }
+  ],
+  "banned_outcomes": [
+    { "id": "BP1", "triggered": false, "evidence": "`git -C D:\\horil\\agent status --porcelain` shows only '?? goals/2026-07-12-p1-orchestrator-control-loop/'. `find D:\\horil\\agent -name agentic_os.py` returns nothing; all product code under D:\\horil\\agentic-os. Throwaway targets created/removed under scratchpad; home unchanged." },
+    { "id": "BP2", "triggered": false, "evidence": "QP3(c) no-budget session refused (exit 2) before any goal; QP1 rubric-without-max_iterations refused; every executed goal carried a max_iterations bound and a session budget." },
+    { "id": "BP3", "triggered": false, "evidence": "QP6(a): after AGENT_STOP, loop logs 'halt' and exits stopped after the current iteration; queued G2 never emits goal_start; no further iteration." },
+    { "id": "BP4", "triggered": false, "evidence": "QP5: empty-queue run returns exit 0 state=idle within a 30s timeout (never fired); zero iterations; no busy-loop." },
+    { "id": "BP5", "triggered": false, "evidence": "grep docs/ + README.md + cli/agentic_os.py: gate framed as 'anti-drift guardrail', explicitly 'not a security or correctness guarantee ... gameable' (ORCHESTRATOR.md L9-15, README L101-104, INSTALL.md L127-131, cli L484-485). No security-boundary claim." },
+    { "id": "BP6", "triggered": false, "evidence": "criteria.json status='in_progress'; all 8 criteria status='failing', evidence unset; maker flipped nothing and did not declare done." },
+    { "id": "BP7", "triggered": false, "evidence": "QP4 artifacts: goal A fully completes before goal B's goal_start — strictly sequential; single `current` goal, no overlapping execution, one active STATE.md writer." },
+    { "id": "BP8", "triggered": false, "evidence": "Real mode (no mock env) on empty repo: run-status mode='real', idle, exit 0. Real mode with a queued goal: session_start(mode:real)+goal_start, then hard-errors 'real runner requires the claude CLI on PATH' (exit 1) via RealRunner.run_iteration->_invoke_claude — not a no-op. Source L1211-1229: `if mock_path: MockRunner else: RealRunner(target)` — real is default, mock is a gated opt-in." }
+  ],
+  "overall": "PASS",
+  "diff_for_maker": []
+}

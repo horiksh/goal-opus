@@ -137,6 +137,16 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   cap (5) exceeded` on a large confirmed-claim set, and the throw propagates past the script's own
   `if(!report){…salvage…}` guard — wrap the synthesize `agent()` call in try/catch so the salvage
   return fires. R1 reached 22/25 verified only after the try/catch patch + a rested-window resume.
+- [2026-07-12] Rubric-design pattern for INTEGRATION-HEAVY phases (where the real behavior drives a
+  non-deterministic LLM and so can't be a rubric `verify`): make the CONTROL FLOW verifiable by
+  (1) MANDATING a deterministic mock/test handle in the rubric spec itself — a documented env/flag +
+  fixture schema the maker MUST implement (e.g. `AGENTIC_OS_MOCK_RUNNER=<fixture.json>`), so every
+  criterion is executable offline against the loop's OWN outputs (states/budgets/logs/checkpoints)
+  while only the dependency's content is faked; AND (2) adding a BANNED OUTCOME that the real
+  (non-mock) path must EXIST and be the DEFAULT — else you ship a mock-only fake that passes
+  control-flow tests with no real integration. Proven on agentic-os P1: 8/8 criteria graded
+  deterministically; the guard (BP8) confirmed the real path is default and genuinely invokes
+  `claude`. Reuse this shape for any phase whose real work is non-deterministic (e.g. P2 crash-resume).
 
 ## Last session
 - [2026-07-07] Scaffolded the /goal-opus system and ran E2E verification. Run 1
@@ -236,3 +246,16 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   `main`, MIT, noreply git config). Distinct from the public home repo (github.com/horiksh/goal-opus).
   Caveat recorded in the target's own STATE.md: its first 3 commits carry a personal gmail address
   (pre-dated the config fix) — harmless while private; rewrite to noreply before any public flip.
+- [2026-07-12] `/goal-opus` **P1 (Orchestrator control loop, §4d)** — SUCCESS in **1 iteration**
+  (bigger, harder build than P0: 240k maker tokens, 82 self-tests — still first-try). Extended the P0
+  CLI in `D:\horil\agentic-os` (commit `5bcb358`): the §4d per-iteration loop (poll sentinels → check
+  budgets → pick → gate rubric → run one goal-opus iteration → gate → write back), run-lifecycle state
+  machine, `AGENT_STOP`/`STEER.md` sentinels, per-goal + aggregate-iteration + token budgets (no-budget
+  refusal), no-progress detector, empty-queue idle exit, verb surface (+ `resume`/`undo` stubs), a
+  deterministic mock runner (`AGENTIC_OS_MOCK_RUNNER`) and the DEFAULT real goal-opus integration.
+  goal-verifier PASS on all 8 criteria (QP1–QP8) + 8 banned outcomes, each re-run on fresh throwaway
+  repos (`goals/2026-07-12-p1-orchestrator-control-loop/reports/iter-1.json`); tests 82/82 P1 + 53/53 P0.
+  Home clean (BP1). Promotion gate D2 item (2) "one real **multi-iteration** goal" is STILL pending —
+  both P0 and P1 converged in 1. NEXT: `/goal-opus` **P2 (Durable memory & write-back)** — crash/cancel
+  write-back guarantee, idempotent resume from checkpoint + run log, export, secret-scrub, size-warning
+  (scopes master-seed C2/C4/C8 + reqs U5/U6/U7/U10/U21/U30/U31/U32).
