@@ -232,3 +232,7 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   evidence landed here). Promotion gate D2 item (2) "one real **multi-iteration** goal" is STILL
   pending — this converged in 1. NEXT: `/goal-opus` **P1 (Orchestrator control loop, §4d)** against the
   same TARGET, scoping the C1/C3/C6/C7 + U3/U11/U12/U13/U15/U34 subset.
+- [2026-07-12] Target repo PUBLISHED **private** at https://github.com/horiksh/agentic-os (default
+  `main`, MIT, noreply git config). Distinct from the public home repo (github.com/horiksh/goal-opus).
+  Caveat recorded in the target's own STATE.md: its first 3 commits carry a personal gmail address
+  (pre-dated the config fix) — harmless while private; rewrite to noreply before any public flip.
