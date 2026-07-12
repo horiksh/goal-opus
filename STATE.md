@@ -338,6 +338,16 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   captured envelope — and the goal-verifier **re-captured its own fresh envelope** to defeat a
   hand-built fixture (BP2) — `goals/2026-07-13-p8-real-runner-hardening/reports/iter-1.json`; test_p8
   30/30, P0–P4 unchanged. Sign-off wasn't returned so I proceeded unattended per protocol (recorded in
-  GOAL.md). The §8 blocker is now RESOLVED in the target's Open failures. NEXT (in progress): the LIVE
-  §8 re-run — real goals through the live loop with `claude` on PATH + the permission opt-in — the true
-  acceptance the fix enables (non-deterministic; may surface more).
+  GOAL.md). The §8 blocker is now RESOLVED in the target's Open failures.
+- [2026-07-13] **LIVE §8 CORE PASSES — the P8 fix validated end-to-end against real `claude`.** A bounded
+  one-goal live run (sandboxed throwaway repo, `AGENTIC_OS_DANGEROUSLY_SKIP_PERMISSIONS=1`) went
+  `session_start → goal_start → iteration(verdict=success, changed=True, tokens=2020) → land_gate=land →
+  goal_end(success) → session_end(success)`: the LIVE maker wrote `greet.txt='hello'`, the LIVE verifier
+  graded PASS, the gate landed it, and it wrote back a real git checkpoint (`88e85f5`) with real token
+  accounting — all of which were broken pre-P8. Evidence:
+  `goals/2026-07-13-p8-real-runner-hardening/reports/live-s8-smoke/`. This closes the critical §8
+  uncertainty (does the live loop actually work — YES). REMAINING for a FULL §8 acceptance: the ≥2-goal
+  sequence + LIVE `AGENT_STOP`/`resume`/`undo` + the two-way verification — a larger (still cheap: ~2k
+  tokens/goal) live exercise, offered to the user. Cost so far: one probe + captures + one 2020-token
+  live goal (~$0.1 total). NOTE: this live run is finally a real end-to-end integration (though still
+  1-iteration); promotion-gate D2 item (2) "one real multi-iteration goal" remains technically unmet.

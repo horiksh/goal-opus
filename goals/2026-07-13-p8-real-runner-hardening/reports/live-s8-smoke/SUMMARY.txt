@@ -1,0 +1,4 @@
+LIVE §8 one-goal smoke — 2026-07-13
+real claude at C:/Users/horil/.local/bin/claude.exe, AGENTIC_OS_DANGEROUSLY_SKIP_PERMISSIONS=1 (sandboxed throwaway target)
+RESULT: g1 SUCCESS in 1 iteration — live maker wrote greet.txt='hello', live verifier PASS, land_gate=land, checkpoint 88e85f5, cumulative_tokens=2020.
+Proves the P8 fix makes real goals pass through the live loop (all broken pre-P8).

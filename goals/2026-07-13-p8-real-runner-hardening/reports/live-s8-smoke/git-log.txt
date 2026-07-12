@@ -1,0 +1,2 @@
+88e85f5 agentic-os checkpoint: goal g1 success (iterations=1, tokens=2020)
+f1c0de4 base
