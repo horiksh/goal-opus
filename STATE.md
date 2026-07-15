@@ -351,3 +351,17 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   tokens/goal) live exercise, offered to the user. Cost so far: one probe + captures + one 2020-token
   live goal (~$0.1 total). NOTE: this live run is finally a real end-to-end integration (though still
   1-iteration); promotion-gate D2 item (2) "one real multi-iteration goal" remains technically unmet.
+- [2026-07-13] **FULL live §8 RAN → does NOT pass. It surfaced a CLUSTER of 5 real integration bugs,
+  ALL mock-hidden** (the strongest possible proof of the MOCK-VERIFIED≠LIVE-READY lesson: 5 phases + a
+  fix + an ASCII smoke all green, yet the full live run has 5 bugs). WORKED live: real g1 core + the LIVE
+  AGENT_STOP mid-run halt (g1 landed, g2 never started, state=stopped — the kill-switch works with the
+  real runner). BUGS (detail: target Open failures + `goals/2026-07-13-p8-real-runner-hardening/reports/
+  live-s8-full/FINDINGS.md`): (1) [high] every `subprocess.run(text=True)` lacks `encoding="utf-8"` →
+  cp932 (this Japanese-locale box) crashes on non-ASCII claude/git output; (2) [high] the checkpoint
+  stages only STATE.md + `.agentic-os/`, NOT the maker's product files → `undo` can't revert real
+  autonomous changes (untracked); (3) [med] queue not consumed (`run` re-runs completed goals); (4) [med]
+  `resume` no-ops after an AGENT_STOP halt; (5) [low] no None-guard on a failed-decode report. Both P8's
+  fix AND every mock phase were green — only the live acceptance caught these. NEXT (recommended): a
+  focused **P9 live-hardening** /goal-opus goal (fix 1–5, load-bearing 1+2, ground the tests in a
+  cp932-locale + real-untracked-file scenario), then re-run full live §8. This is the loop doing its
+  job — do NOT mark v1 "done" until the full live §8 passes.

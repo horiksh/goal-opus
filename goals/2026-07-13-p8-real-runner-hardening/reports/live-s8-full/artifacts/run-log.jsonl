@@ -1,0 +1,10 @@
+{"ts": "2026-07-15T15:16:49", "event": "session_start", "session_id": "20260715151649-28104", "mode": "real", "goals_queued": 2, "iteration_budget": 6, "token_budget": 800000, "no_progress_threshold": 2}
+{"ts": "2026-07-15T15:16:49", "event": "goal_start", "goal": "g1", "max_iterations": 2}
+{"ts": "2026-07-15T15:16:49", "event": "iter_begin", "goal": "g1", "iter": 1, "session_id": "20260715151649-28104"}
+{"ts": "2026-07-15T15:17:43", "event": "iteration", "goal": "g1", "iter": 1, "agg_iter": 1, "tokens": 2051, "cum_tokens": 2051, "changed": true, "verdict": "success", "note": null}
+{"ts": "2026-07-15T15:17:43", "event": "land_gate", "goal": "g1", "decision": "land", "note": "evidence present -> clean landed success; undo pointer recorded (U33/B11)."}
+{"ts": "2026-07-15T15:17:43", "event": "goal_end", "goal": "g1", "state": "success", "iterations": 1, "tokens": 2051, "note": null, "undo_pointer": "6fa4f49f9642207778ad546e0c2e667460ebc8b8", "session_id": "20260715151649-28104"}
+{"ts": "2026-07-15T15:17:44", "event": "notify", "notify_event": "finish", "goal": "g1", "state": "success", "detail": null, "hook_configured": false, "delivered": false, "hook_exit": null, "hook_error": null, "note": "push-notify (U35) on a notable event; optional + non-fatal + local + secret-scrubbed."}
+{"ts": "2026-07-15T15:17:44", "event": "halt", "reason": "agent-stop", "note": "AGENT_STOP present - halting after current iteration; no new iteration starts"}
+{"ts": "2026-07-15T15:17:44", "event": "notify", "notify_event": "block", "goal": null, "state": "stopped", "detail": null, "hook_configured": false, "delivered": false, "hook_exit": null, "hook_error": null, "note": "push-notify (U35) on a notable event; optional + non-fatal + local + secret-scrubbed."}
+{"ts": "2026-07-15T15:17:44", "event": "session_end", "state": "stopped"}

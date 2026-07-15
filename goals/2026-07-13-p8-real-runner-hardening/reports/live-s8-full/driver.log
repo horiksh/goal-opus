@@ -1,0 +1,53 @@
+===PHASE0 install+enqueue===
+init_exit=0
+enq1_exit=0
+enq2_exit=0
+===PHASE1 run + LIVE AGENT_STOP during goal 1===
+g1_started_after_polls=2
+AGENT_STOP dropped at 15:16:51
+run1_exit=0
+--- post-halt: goals seen in run-log ---
+      6 "goal": "g1"
+--- post-halt state ---
+state= stopped active= g1
+--- AGENT_STOP still present? ---
+yes
+--- git after halt ---
+3083726 agentic-os checkpoint: goal g1 success (iterations=1, tokens=2051)
+6fa4f49 base
+--- files after halt ---
+AGENT_STOP STATE.md alpha.txt goals r1.json r2.json tools 
+===PHASE2 resume (remove AGENT_STOP first)===
+resume_exit=0
+--- goal_start count per goal (g1 must be 1: NOT re-run) ---
+      1 "goal": "g1"
+--- post-resume state ---
+state= stopped totals= {'aggregate_iterations': 1, 'cumulative_tokens': 2051, 'goals_total': 2, 'goals_run': 1, 'criteria_passing': 0, 'criteria_total': 1}
+--- git after resume ---
+3083726 agentic-os checkpoint: goal g1 success (iterations=1, tokens=2051)
+6fa4f49 base
+--- files after resume ---
+STATE.md alpha.txt goals r1.json r2.json tools 
+===PHASE3 undo the last landed change===
+pre_undo_HEAD=30837265d880da79ce45883a7b5955d3337574b5
+undo_exit=1
+undo: REFUSING - the working tree has uncommitted USER changes a reset would clobber:
+  ?? .claude/agents/goal-maker.md
+  ?? .claude/agents/goal-verifier.md
+  ?? .claude/skills/goal-opus/SKILL.md
+  ?? .claude/skills/goal-opus/templates/PROGRESS.template.md
+  ?? .claude/skills/goal-opus/templates/criteria.template.json
+  ?? alpha.txt
+  ?? goals/create-alpha-txt/PROGRESS.md
+  ?? r1.json
+  ?? r2.json
+  ?? tools/rubric_check.py
+  Commit or stash them first, or re-run `undo --force` to override deliberately. (BP7: undo never blind-resets over user work.)
+post_undo_HEAD=30837265d880da79ce45883a7b5955d3337574b5
+--- files after undo (beta.txt should be gone, alpha.txt kept) ---
+STATE.md alpha.txt goals r1.json r2.json tools 
+--- git after undo ---
+3083726 agentic-os checkpoint: goal g1 success (iterations=1, tokens=2051)
+6fa4f49 base
+===PHASE4 dump artifacts for two-way verification===
+===DONE===
