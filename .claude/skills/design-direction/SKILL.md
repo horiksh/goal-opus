@@ -76,9 +76,32 @@ target repo (`docs/design/`) and the agent home separately.
 
 ## Known failure modes
 
-_(none yet)_
+- **Inline-attached references have no disk bytes.** When the user "attaches" reference
+  screenshots in chat, they arrive as inline images — visible to vision, but NOT on the
+  filesystem, so they can't be copied into `references/`. The **approved-mock capture** is a
+  valid (often stronger) anchor — save it as R-latest and mark the user's inspiration
+  screenshots "pending drop"; ask the user to place the PNGs themselves. Freeze proceeds:
+  tokens + BV-list still enforce floors; the mock capture anchors vision-verify.
+- **Contrast must be tested against the TRUE worst-case ground, not white.** For light-theme
+  dark text, the worst-case is the *darkest* ground the text can sit on (surface-2 / rail),
+  not `#FFFFFF`. Testing only against white silently hides failures (an audit caught 3 light
+  status tokens that "passed" on white but failed on surface-2). Ship a validator that (a)
+  tests each token against every ground it renders on, (b) is **ASCII-only in its output**
+  (an em-dash crashed it under cp932 on the JP-locale box), and (c) is **exit-code checkable**
+  (exit 0 == all pass) so a rubric can gate on it.
+- **Audit the frozen doc BEFORE the first commit.** A 5-dimension adversarial pass
+  (PRD-non-contradiction · BV-enforceability · contrast-math · missing-tokens ·
+  states↔views) reliably finds real defects (self-contradicting motion rules, temporal BV
+  clauses that a *still* frame can't judge, contrast blockers). Fixes applied pre-commit are
+  part of **v1**, not a version bump — "frozen" binds only once the session ships/commits.
+- **BV items must name their verification path.** "Checkable from a screenshot" over-promises:
+  motion budget, fake-fill, ambient-motion, and UI-freeze are temporal/behavioral, and
+  provenance (rubric-derived vs self-assessed %) is invisible in a frame. Keep the ban text
+  verbatim but add a "Verified via" column routing each to a still / reduced-motion capture /
+  before-after frame-pair / DOM read / copy audit / named L1 assert.
 
 ## Run log
 
 | date | product | target | references | outcome |
 |---|---|---|---|---|
+| 2026-07-16 | agentic-os Mission Control | `D:\horil\agentic-os` | R3 Helm mock (present, 1440×900 reproducible); R1/R2 V.A.U.L.T./Operator (pending user drop) | **v1 FROZEN** — direction **C·Helm** (canvas core + 2 legible rails). 3 candidates mocked & chosen live; hardened pre-freeze by a 5-dim adversarial audit + re-verify (fixed a light-theme contrast blocker, a self-contradicting idle-pulse rule, temporal BV over-claims, 4 missing light tokens + `--focus`, states↔views gap). vision-verify anchored on R3 + BV1–BV16. |

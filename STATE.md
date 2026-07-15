@@ -432,3 +432,21 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   `agentic-os/docs/` (UI-PRD.md, ui-criteria.seed.json). NEXT: `/design-direction` in `D:\horil\agentic-os` (U0, MANDATORY
   before any UI slice — vision-verify needs anchors), then `/goal-opus` at U1 (read-only observatory: loopback+Host-
   validation, torn-read-safe reader, 4 mechanics, staleness/crash/empty states, a11y baseline).
+- [2026-07-16] `/design-direction` in `D:\horil\agentic-os` (U0 — the MANDATORY gate before any UI slice; PRD §7/B13).
+  Interactive: mocked 3 candidate directions on the canonical home-during-a-live-run view — A·Bridge (full R1 HUD canvas,
+  floating panels) / B·Operator (R2 sidebar + right stat-rail) / C·Helm (hybrid) — and the operator chose **C·Helm**:
+  continuous near-black canvas + HUD type + centered **living loop** (R1's particle sphere RE-PURPOSED as the
+  maker→verifier→land-gate→write-back graph, functional motion only), flanked by a slim nav rail + a right "truth rail"
+  for the honesty bar / token burn / rich skills — density in the center, calm in the rails. Froze
+  `docs/design/design-direction.md` **v1** (tokens BOTH themes WCAG-validated; motion functional-only; 10 required states;
+  BV-list **BV1–BV16** with per-item "verified-via" paths; reproducible screenshot procedure) + `references/` (R3 Helm mock
+  present & 1440×900-reproducible; **R1/R2 PENDING user file-drop** — they arrived as inline attachments, bytes not on disk)
+  + empty `baselines/` + `mocks/` (standalone Helm reference HTML + `contrast-check.py`, exits 0 ALL-PASS). Hardened BEFORE
+  freeze by a 5-dimension adversarial audit (6-agent workflow) + a fresh-context re-verify — caught & fixed a real
+  light-theme **contrast blocker** (3 status tokens darkened after testing the TRUE worst-case ground surface-2/rail, not
+  white), a self-contradicting idle-pulse motion rule, temporal BV clauses over-claiming still-frame checkability, 4 missing
+  light tokens + a `--focus` token, and a states↔views coverage gap (lessons folded into the skill's Known failure modes).
+  Committed to the TARGET on branch `docs/ui-prd` (beside UI-PRD.md), home write-back separate. **B13 now satisfied** — a
+  frozen direction + anchors exist in the target. NEXT: `/goal-opus` at **U1** (read-only observatory) in
+  `D:\horil\agentic-os`; its vision-verify Phase 1 will find the anchors. OPEN: drop the R1/R2 PNGs into
+  `docs/design/references/` to complete the anchor set (non-gating).
