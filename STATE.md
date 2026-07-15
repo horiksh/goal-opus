@@ -386,3 +386,19 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   the verifier wrote its OWN stub and drove the real runner under cp932 to confirm the fix is
   load-bearing. `goals/2026-07-13-p9-live-hardening/reports/iter-1.json`; test_p9 54/54, P0–P4/P8
   unchanged. NEXT (in progress): **re-run the FULL live §8** — the real acceptance the P9 fixes enable.
+- [2026-07-13/15] **FULL LIVE §8 PASSES — v1 agentic-os is DONE.** After P9, the full §8 acceptance ran
+  end-to-end against real `claude`: install+bootstrap → enqueue 2 → run both goal-opus loops (real
+  maker→verifier→gate→write-back, 4337 real tokens, 2 checkpoints) → **live AGENT_STOP** halted within
+  one iteration (g1 landed, g2 not started) → **`resume`** continued g2 without redoing g1 → **`undo`**
+  reverted the last landed change (beta.txt gone, alpha.txt kept, HEAD→g2's pre-change SHA, reflog-
+  recoverable). Verified TWO WAYS: (a) replay from status+git reproduces the state; (b) a FRESH-CONTEXT
+  goal-verifier confirmed all 5 §8 claims from artifacts ALONE (overall PASS) — it recovered the
+  pre-undo run-log from the g2 checkpoint's committed blob. Evidence:
+  `goals/2026-07-13-p9-live-hardening/reports/full-s8-pass/VERDICT.md`. **The whole arc closed:
+  P0–P4 mock-green → §8 live probe caught a broken adapter → P8 fixed parsing (live core passed) →
+  full §8 caught 5 more mock-hidden bugs → P9 fixed them (faithful fake-claude stub) → full live §8
+  PASSES two ways.** That IS the self-improving loop's thesis, demonstrated end-to-end: independent
+  live verification kept catching what green mocks hid, until the real thing actually worked. D2 item
+  (2) "one real multi-iteration goal" is satisfied in SPIRIT (the loop iterated across P8/P9 to fix real
+  bugs), though each goal-opus phase itself still converged in 1. v1 remaining scope is only P5+
+  (cloud/concurrency/dreaming/multi-target/cross-platform/adopter-docs) → future PRDs.
