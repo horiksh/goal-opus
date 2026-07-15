@@ -274,6 +274,20 @@ a reviewable diff. Do not prune inline during a goal run.
   banned-outcome guarding that the real path EXISTS + is default is necessary but NOT sufficient;
   require a LIVE acceptance run against the real tool's true output before declaring a product done.
   (Full root-cause in STATE.md Lessons learned 2026-07-13.)
+- [2026-07-16 · u1-observatory] A UI slice passed its token-VALUES-only contrast script
+  (`contrast-check.py` exit 0) yet shipped INVISIBLE white-on-white text in the light theme (the
+  active goal's name) → root cause: two text colors were HARDCODED outside the token file, so a
+  checker that validates the token TABLE never saw them; the maker faithfully copied a dark-first
+  mock that itself carried the dark-only hardcodes (faithfulness to a reference ≠ second-theme
+  correctness) → fix: vision-verify (Reading the actual `home-live--light` capture) caught it; the
+  maker replaced both with theme tokens AND added a guard test that FAILS on any raw `#hex`/`rgb`
+  text `color:` outside the token file. RULE: for any themed UI slice, (1) pair every "validate the
+  DEFINITION" check (token table) with a "validate the RENDERED artifact" check (vision-verify +/or a
+  DOM contrast pass) and a cheap guard that BANS bypassing the definition (text colors MUST be
+  `var(--…)`); (2) the vision pass MUST include the second-theme (`--light`) capture, not just the
+  primary — the primary-theme frame can be perfect while the second theme has invisible text. This is
+  the vision-verify sibling of MOCK-VERIFIED≠LIVE-READY. (Full root-cause: home + target STATE.md
+  Lessons learned 2026-07-16.)
 
 ## Eval suite
 
@@ -345,6 +359,17 @@ a reviewable diff. Do not prune inline during a goal run.
   per terminal event, not per iteration) + OP4 (failing hook non-fatal + payload scrubbed). Baseline:
   1 iteration to all-pass. NOTE: §8 final acceptance (the LIVE run) is a demo/acceptance test, not a
   mock-graded phase — it is NOT in this eval suite because it is inherently non-deterministic.
+- [2026-07-16] agentic-os-U1 (read-only observatory) — `goals/2026-07-16-u1-observatory/criteria.json`
+  (13 criteria C1–C9,C11,C12,C13,C15; 20 banned outcomes incl. BV1–BV16 verbatim). **FIRST UI slice /
+  FIRST vision-verify E2E** — the permanent regression case for the vision-verify machinery: it proves
+  a BV violation actually GATES a run (iter-1 failed C12 on BV9 light-theme contrast; iter-2 fixed →
+  unanimous PASS) and the verifier judges by LOOKING (names viewed images). Passed in **2 iterations**
+  (first multi-iteration real goal — promotion-gate D2 item (2) satisfied). Deterministic: all criteria
+  are fixture- or capture-based (no live `claude`). Regression trigger: after any change to the reader
+  or `ui/assets/*`, re-run `python -m pytest tests/test_u1.py -q` (39) + `python ui/capture_screens.py`
+  and Read `home-live--light.png` (BV9 guard) + confirm the `contrast_hardcode` test still fails on a
+  poisoned copy. Baseline: 2 iterations to all-pass (BV9 light-theme). Baselines live in
+  `agentic-os/docs/design/baselines/` (13 views) — future UI slices regress against them.
 
 ## Run log
 
@@ -363,3 +388,4 @@ a reviewable diff. Do not prune inline during a goal run.
 | 2026-07-12 | agentic-os-P4 | 1 | success (tailable status + push-notify; completes v1 core P0–P4) |
 | 2026-07-13 | agentic-os-P8 | 1 | success (real-runner hardening; born from the §8 live finding) |
 | 2026-07-13 | agentic-os-P9 | 1 | success (live-hardening: 5 §8 bugs fixed; faithful fake-claude stub) |
+| 2026-07-16 | agentic-os-U1 | 2 | success (first UI slice; vision-verify E2E-proven — BV9 gated iter-1; first multi-iteration goal) |

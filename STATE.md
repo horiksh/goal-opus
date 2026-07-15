@@ -34,6 +34,14 @@
   De-risks the PRD's U24/U25 §9 assumption ("junctions need privilege and can fail").
   Also verified: removing a junction via `rmdir`/`os.rmdir` does NOT follow the link to
   delete the canonical payload source — round-trip install→uninstall is source-safe.
+- [2026-07-16] **Vision-verify is now E2E-PROVEN on a real UI slice** (closes the E2E test the
+  2026-07-08 D7 note specified). On agentic-os U1, the fresh-context `goal-verifier` (a) NAMED the
+  image files it Read, and (b) a real banned-visual-outcome — BV9, an active-goal name rendered
+  white-on-white in the light theme — ACTUALLY FAILED the run and forced iteration 2. Both E2E
+  conditions held: the verifier judged by LOOKING (Read renders images), and a BV violation gated
+  the run. A token-VALUES-only contrast script (`contrast-check.py`) passed on the same frame — only
+  the looked-at capture caught the defect. Vision-verify catches exactly the class of failure a
+  text/token check cannot.
 
 ## General rules
 - Define "done" as an executable, Default-FAIL rubric BEFORE any making. A criterion
@@ -185,6 +193,23 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   correct (per /prd Phase 1), but the improvement is anchoring each assumption to WHERE it gets verified (here: the U0
   `/design-direction` session is the named checkpoint for A1 delivery / A2 control-scope / A3 fleet-scope / A4 ambition).
   An assumption with a verification GATE is actionable; one merely "logged in Risks" is inert.
+- [2026-07-16] **A deterministic checker that validates the SPEC/SOURCE can be blind to work that
+  BYPASSES the source — the looked-at (or rendered) artifact is the real gate.** On agentic-os U1,
+  `contrast-check.py` validated the token TABLE and exited 0, but two text colors were hardcoded
+  OUTSIDE the token file, so the values-only check never saw them and the light-theme active-goal
+  name rendered white-on-white. GENERAL RULE (the vision-verify sibling of the MOCK-VERIFIED≠
+  LIVE-READY lesson): pair every "validate the definition" check with a "validate the RENDERED
+  output" check — and, cheaply, a guard that BANS bypassing the definition (here: a test failing on
+  any raw `#hex` text `color:` outside the token file, so a hardcoded color can never again slip past
+  the token-only validator). One alone is insufficient; the maker faithfully copied the frozen mock,
+  which itself carried the dark-only hardcodes — faithfulness to a reference does not guarantee
+  second-theme correctness.
+- [2026-07-16] **A perspective-diverse verification PANEL strengthens a UI gate beyond a single
+  grader.** For U1 iter-2 the re-verify ran three independent `goal-verifier` lenses (vision+BV /
+  regression+security / craft-skeptic), each re-capturing or re-probing on its OWN — the security
+  lens even poisoned a COPY of `app.css` to prove the new hardcode-guard actually fires. Unanimous
+  PASS across diverse lenses is higher-confidence than one verifier, and the independent second
+  capture guards against a single flaky capture. Cheap and worth it on visual/irreversible slices.
 
 ## Last session
 - [2026-07-07] Scaffolded the /goal-opus system and ran E2E verification. Run 1
@@ -450,3 +475,23 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   frozen direction + anchors exist in the target. NEXT: `/goal-opus` at **U1** (read-only observatory) in
   `D:\horil\agentic-os`; its vision-verify Phase 1 will find the anchors. OPEN: drop the R1/R2 PNGs into
   `docs/design/references/` to complete the anchor set (non-gating).
+- [2026-07-16] `/goal-opus` **U1 — read-only observatory (FIRST UI slice; first vision-verify E2E)** —
+  **SUCCESS in 2 iterations** against TARGET `D:\horil\agentic-os`. Built a stdlib-only loopback
+  "Mission Control" (`ui/` + a `dash` verb): 127.0.0.1 bind + Host-header validation, torn-read-safe
+  last-known-good reader, staleness, crash/first-run/not-installed states, the 4 mechanics as C·Helm
+  panels, display-time secret re-redaction, a11y baseline (color-independent status, empty-at-load ARIA
+  live regions, reduced-motion + toggle), READ-ONLY. 12 fixture/code criteria (C1–C9,C11,C13,C15) passed
+  iter-1; **iter-1 FAILED C12 (vision-verify): BV9 contrast triggered on the LIGHT theme** — two hardcoded
+  non-token colors rendered the active-goal name white-on-white; the token-only `contrast-check.py` passed
+  but the fresh verifier caught it by LOOKING at `home-live--light`. **iter-2** fixed both (→ theme tokens)
+  + added a durable `contrast_hardcode` guard; a **3-lens adversarial panel** (Workflow: vision / regression+
+  security / craft-skeptic, each re-capturing/re-probing independently) → **unanimous PASS**, no regression,
+  all BV1–BV16 clear. `tests/test_u1.py` 39/39. Orchestrator promoted **13 baselines** →
+  `agentic-os/docs/design/baselines/`. This is the FIRST demonstration of the D7 vision-verify machinery
+  end-to-end (a BV violation actually gated a run; verifier named viewed images) — folded to Verified facts +
+  Lessons learned. **PROMOTION-GATE D2 item (2) "one real MULTI-iteration goal" is now SATISFIED** — U1 genuinely
+  iterated (fail→fix→pass) on a real product goal. Evidence: `goals/2026-07-16-u1-observatory/`. Committed in
+  the TARGET on branch `docs/ui-prd`; home write-back separate. FOUND (pre-existing, NOT U1-caused; recorded in
+  the target's Open failures): the committed engine suite `tests/test_p0..p9` needs a never-committed
+  `conftest.py` (`base` fixture) → 38 errors on a fresh clone; test_u1 is self-contained. NEXT: `/goal-opus`
+  **U2 (the living loop)** — motion + flight-recorder timeline + virtualized run-log.
