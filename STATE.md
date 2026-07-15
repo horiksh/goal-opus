@@ -170,6 +170,21 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   actual output is MANDATORY before "done"; a banned-outcome guard that the real path merely EXISTS
   and is default (agentic-os BP8) is necessary but NOT sufficient — it proves the path is wired, not
   that it parses reality. Confirmed for ~$0.05 with one `claude -p` probe rather than a doomed full run.
+- [2026-07-15] **For a PRD about a UI/observer over an EXISTING codebase, add a CODE-VERIFICATION pass between R3/R4 and
+  synthesis — the producer's data model is VERIFIABLE, not assumable.** On the agentic-os-ui PRD, R3 honestly flagged its
+  own "verification backlog" (torn reads? atomic writes? crash-marker semantics? scrub coverage? lock/CAS?) as
+  [ASSUMPTION]s it couldn't check. The main loop grepped/read the live CLI (`agentic-os/cli/agentic_os.py`) in minutes
+  and upgraded FIVE claims [A]->[V]: run-status.json is written IN PLACE non-atomically (torn reads are REAL, not
+  hypothetical -> the UI's torn-read handling is a hard MUST + a 3-line producer fix recommended); in_flight/queue-consumed/
+  notify-events are all real; and NO lock/lease/CAS exists (so UI control is net-new coordination). This ALSO resolved R4's
+  single "architecture-impossible" flag (per-iteration replay): run-status.json is a snapshot, but run-log.jsonl is the
+  durable per-iteration journal (the CLI already has `_rebuild_progress_from_runlog`). GENERAL RULE: when the product
+  observes/controls an existing system, verify its data-model claims against the code before locking the PRD.
+- [2026-07-15] **When the user leaves scope questions unanswered, tie each [ASSUMPTION] to a concrete downstream GATE, not
+  just the Risks section.** The agentic-os-ui user didn't answer the 4 scope Qs; proceeding autonomously with defaults is
+  correct (per /prd Phase 1), but the improvement is anchoring each assumption to WHERE it gets verified (here: the U0
+  `/design-direction` session is the named checkpoint for A1 delivery / A2 control-scope / A3 fleet-scope / A4 ambition).
+  An assumption with a verification GATE is actionable; one merely "logged in Risks" is inert.
 
 ## Last session
 - [2026-07-07] Scaffolded the /goal-opus system and ran E2E verification. Run 1
@@ -402,3 +417,18 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   (2) "one real multi-iteration goal" is satisfied in SPIRIT (the loop iterated across P8/P9 to fix real
   bugs), though each goal-opus phase itself still converged in 1. v1 remaining scope is only P5+
   (cloud/concurrency/dreaming/multi-target/cross-platform/adopter-docs) → future PRDs.
+- [2026-07-15] `/prd "cutting-edge UI/UX for the agentic-os"` — first /prd against the now-DONE agentic-os engine (the
+  UI observes/controls it). Mode: standard 3-agent fan-out (NOT deep-research — observability-dashboard domain is
+  well-trodden with dense analogs; a local single-operator tool; deep-research's rate-limit failure mode not worth it)
+  + single-agent R4 gap-check + single-agent R5 gap-closer. User did NOT answer the 4 scope Qs → proceeded autonomously
+  with defaults logged as [ASSUMPTION] tied to the U0 /design-direction gate (A1 local web app · A2 phased full-control,
+  read-only first · A3 single-target/many-goals · A4 daily-driver+visionary). R4 EARNED ITS KEEP (2nd time the
+  "which promised capability has NO research" test caught the headline gap): the user's FIRST-named mechanic — SKILLS
+  INSTALLED — had zero research, and "intuitive"/"visionary" were unbacked; spawned R5 to close them (Claude Code
+  /plugins schema, NN/g onboarding, LangGraph live-loop-graph, functional-motion doctrine). Code-verified R3's data-model
+  assumptions against the live CLI (5 claims [A]→[V]; resolved R4's per-iteration-replay flag via run-log.jsonl). Shipped
+  `prds/2026-07-15-agentic-os-ui/PRD.md` (7 stated, 43 untold U1–U43, 14 banned B1–B14, ~34 sources) +
+  `criteria.seed.json` (14 criteria C1–C14 + 14 banned; rubric_check PASS); copied PRD+seed into the TARGET
+  `agentic-os/docs/` (UI-PRD.md, ui-criteria.seed.json). NEXT: `/design-direction` in `D:\horil\agentic-os` (U0, MANDATORY
+  before any UI slice — vision-verify needs anchors), then `/goal-opus` at U1 (read-only observatory: loopback+Host-
+  validation, torn-read-safe reader, 4 mechanics, staleness/crash/empty states, a11y baseline).
