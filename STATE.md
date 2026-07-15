@@ -147,6 +147,17 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   control-flow tests with no real integration. Proven on agentic-os P1: 8/8 criteria graded
   deterministically; the guard (BP8) confirmed the real path is default and genuinely invokes
   `claude`. Reuse this shape for any phase whose real work is non-deterministic (e.g. P2 crash-resume).
+- [2026-07-13] **FAKE-STUB-OF-THE-REAL-DEPENDENCY is the deterministic-but-FAITHFUL test substrate**
+  (the resolution to MOCK-VERIFIED≠LIVE-READY). A pure mock hides the real dependency's output shape,
+  edge bytes, and side effects. Instead build a STUB of the real dependency that (a) emits its TRUE
+  output format (agentic-os P9's fake-`claude` stub emits a real `claude -p --output-format json`
+  envelope — real key set, markdown-fenced `result`), (b) carries the EDGE CONDITIONS that bite live
+  (NON-ASCII bytes → the cp932 decode crash), and (c) produces the REAL SIDE EFFECTS (creates an actual
+  product file → exercises checkpoint-staging + undo). Placed on a temp PATH as the real binary's name,
+  it drives the REAL adapter path deterministically (no tokens, no live nondeterminism) yet reproduces
+  exactly what the pure mock hid — P9 fixed 5 live-§8 bugs this way and the verifier re-ran them on its
+  OWN stub. GENERAL RULE: for any real-dependency adapter, ship a faithful stub (true format + edge
+  data + real side effects), not just a value mock.
 - [2026-07-13] **MOCK-VERIFIED ≠ LIVE-READY (the flip side of the lesson above).** All of agentic-os
   P0–P4 passed via the deterministic mock, yet the FIRST live run (§8) proved the REAL runner is
   broken against real `claude -p --output-format json`: the CLI returns an ENVELOPE
@@ -365,3 +376,13 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   focused **P9 live-hardening** /goal-opus goal (fix 1–5, load-bearing 1+2, ground the tests in a
   cp932-locale + real-untracked-file scenario), then re-run full live §8. This is the loop doing its
   job — do NOT mark v1 "done" until the full live §8 passes.
+- [2026-07-13] `/goal-opus` **P9 (live-hardening)** — SUCCESS in **1 iteration**. Fixed all 5 live-§8
+  bugs in `D:\horil\agentic-os` (commit `f2c9308`, FRAMEWORK_VERSION 0.6.0): (1) `encoding="utf-8",
+  errors="replace"` on all 11 `subprocess.run(text=True)` (cp932 crash gone); (2) checkpoint now stages
+  the maker's reported `files_changed` so `undo` reverts a real created file — while still refusing over
+  UNreported user work (BP4/BP7 intact); (3) queue consumption (completed goals marked `consumed`);
+  (4) `resume` continues after an AGENT_STOP halt (documented); (5) clean OrchestratorError on empty/
+  garbage claude output. Verified via a FAITHFUL fake-`claude` stub (see Lessons learned 2026-07-13) —
+  the verifier wrote its OWN stub and drove the real runner under cp932 to confirm the fix is
+  load-bearing. `goals/2026-07-13-p9-live-hardening/reports/iter-1.json`; test_p9 54/54, P0–P4/P8
+  unchanged. NEXT (in progress): **re-run the FULL live §8** — the real acceptance the P9 fixes enable.

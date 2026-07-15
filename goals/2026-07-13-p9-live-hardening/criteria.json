@@ -1,0 +1,139 @@
+{
+  "goal": "agentic-os P9 (live-hardening): fix the 5 real integration bugs the full live \u00a78 surfaced - UTF-8 on every subprocess, checkpoint stages the maker's product changes so undo reverts real diffs, queue consumption, continue-after-AGENT_STOP-halt, and a clean error on failed claude decode - with tests grounded in a fake-claude stub that emits non-ASCII + creates real files (the deterministic-but-faithful real-runner substrate). No regression to P0-P4/P8.",
+  "target": "D:\\horil\\agentic-os",
+  "created": "2026-07-13",
+  "max_iterations": 5,
+  "phase": "P9 (live-hardening) - fixes the full-\u00a78 live-integration findings",
+  "status": "success",
+  "notes": "RESOLVED: verifier PASS iteration 1 (reports/iter-1.json); product committed at D:/horil/agentic-os f2c9308 (v0.6.0); test_p9 54/54, P0-P4/P8 unchanged. Scope = the real-runner + checkpoint + queue + resume paths in cli/agentic_os.py + tests/docs. TEST SUBSTRATE (maker MUST build): a FAKE claude stub (a script placed on a temp PATH as `claude`) emitting a REAL-shaped envelope (top-level type/subtype/result(str, markdown-fenced)/usage{input_tokens,output_tokens,cache_*}/session_id/...) whose report contains NON-ASCII bytes AND whose maker turn CREATES a real product file in the target - so the real runner path is driven DETERMINISTICALLY (no live claude, no real tokens). Ground-truth real envelope for shape reference: goals/2026-07-13-p8-real-runner-hardening/fixtures/real_claude_envelope.json. Tests on throwaway repos under the scratchpad; pin interpreter (python/pwsh/bash). This machine's locale is cp932 (getpreferredencoding) - the bug-1 trigger.",
+  "criteria": [
+    {
+      "id": "LP1",
+      "statement": "UTF-8 on every subprocess (fix bug 1): every `subprocess.run(..., text=True)` in cli/agentic_os.py passes `encoding=\"utf-8\"` (with an errors policy), AND the real runner decodes NON-ASCII claude output without crashing.",
+      "verify": "(a) Inspect: assert NO `subprocess.run(...)` with `text=True` (or `universal_newlines=True`) lacks an explicit `encoding=\"utf-8\"` - grep/AST over cli/agentic_os.py; zero un-encoded text subprocess calls. (b) Functional: drive the REAL runner (fake-claude stub on PATH) where the stub emits an envelope whose `result` contains NON-ASCII bytes (e.g. a U+2019 curly quote / byte 0x92); assert the run does NOT raise UnicodeDecodeError/TypeError and the report unwraps. Run under the process default even if cp932.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - all 11 subprocess.run(text=True) carry encoding=utf-8; real runner decodes non-ASCII (U+2019) under cp932 without crash (load-bearing: cp932 corrupts it, utf-8 unwraps).",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json"
+        }
+      ]
+    },
+    {
+      "id": "LP2",
+      "statement": "Checkpoint stages the maker's product changes so undo reverts real diffs (fix bug 2): a real-mode goal that CREATES a product file lands a checkpoint commit CONTAINING that file, and `undo` reverts it (file gone, HEAD == pre-change SHA).",
+      "verify": "Drive a real-mode goal via the fake-claude stub whose maker CREATES a real product file (e.g. out.txt). Assert `git show <checkpoint> --stat` in the target INCLUDES out.txt (the product change is committed, not left untracked). Then `undo` -> `git rev-parse HEAD` == the pre-change SHA AND out.txt is gone. No untracked product residue after the checkpoint.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - checkpoint stages out.txt (git show --stat includes it); undo -> HEAD==pre-change SHA, out.txt gone, no residue.",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json"
+        }
+      ]
+    },
+    {
+      "id": "LP3",
+      "statement": "Queue consumption (fix bug 3): a completed goal is not re-run on a subsequent `run`/`resume`.",
+      "verify": "Enqueue 2 goals; drive them to completion (fake-claude stub). Then invoke `run` again. Assert NO completed goal is re-executed (its goal_start count stays 1 across the whole run-log; the queue marks/dequeues completed goals). Read the run-log goal_start counts + queue.json.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - 2 goals consumed in queue.json; second run re-executes nothing (goal_start stays 1 each).",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json"
+        }
+      ]
+    },
+    {
+      "id": "LP4",
+      "statement": "Continue-after-halt (fix bug 4): after an AGENT_STOP halt with a pending goal, continuing (resume and/or run, per the documented semantics) processes the PENDING goal WITHOUT re-running the completed one, and reaches a terminal success.",
+      "verify": "Enqueue 2 goals; run with AGENT_STOP dropped so goal 1 completes and goal 2 is halted (state=stopped, g2 not started). Remove AGENT_STOP; invoke the documented continue verb (resume or run). Assert goal 2 now runs and completes (its files land), goal 1 is NOT re-run (goal_start g1 == 1), and the session reaches success. Read run-log + git log. A shipped doc states which verb continues after a halt.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - resume continues after AGENT_STOP halt: g2 runs+lands, g1 not re-run, session success; ORCHESTRATOR.md names the verb.",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json"
+        }
+      ]
+    },
+    {
+      "id": "LP5",
+      "statement": "Clean error on bad claude output (fix bug 5): a claude invocation returning undecodable/empty/no-JSON output yields a clean per-iteration OrchestratorError (or a routed run error), NOT a raw TypeError/UnicodeDecodeError crash.",
+      "verify": "Drive the real runner with a fake-claude stub that emits empty output OR non-JSON garbage. Assert the orchestrator reports a CLEAR error (a caught OrchestratorError / logged run error), not an uncaught TypeError('NoneType' object is not iterable) or UnicodeDecodeError. The run fails gracefully (clear message), not a stack trace.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - empty/garbage claude output -> clean OrchestratorError (no TypeError/UnicodeDecodeError stack).",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json"
+        }
+      ]
+    },
+    {
+      "id": "LP6",
+      "statement": "No regression: all existing suites (P0-P4, P8) still pass and the mock path is unaffected.",
+      "verify": "Run `python tests/test_p0.py`..`test_p4.py`, `test_p8.py`, and the new `test_p9.py` from the TARGET. Assert P0-P4 at 53/82/64/64/61, P8 30/30, all PASS, and test_p9 green. The MockRunner path is unchanged.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - P0-P4 53/82/64/64/61 + P8 30/30 + P9 54/54 all pass; mock path unchanged.",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json"
+        }
+      ]
+    }
+  ],
+  "banned_outcomes": [
+    {
+      "id": "BP1",
+      "statement": "Product code or run evidence lands in the agent-home repo (B1: home != build target).",
+      "verify": "`git -C D:\\horil\\agent status --porcelain` shows only goals/2026-07-13-p9-live-hardening/, STATE.md, at most .claude/skills/goal-opus/SKILL.md. All product code under D:\\horil\\agentic-os.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - home shows only workdir; product under target."
+    },
+    {
+      "id": "BP2",
+      "statement": "The fake-claude tests are NOT faithful: the stub emits ASCII-only / a trivial stub / doesn't create a real file, so it fails to reproduce the cp932 + untracked-file scenarios that caught bugs 1+2.",
+      "verify": "The fake-claude stub emits a REAL-shaped envelope (real key set + markdown-fenced result) whose report contains NON-ASCII bytes AND whose maker turn creates a REAL product file in the target. LP1's non-ASCII decode and LP2's committed-then-undone product file both exercise this - not a paper-over.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - stub emits real-shaped envelope + non-ASCII + creates a real file (verified cp932-corrupts / utf-8-unwraps)."
+    },
+    {
+      "id": "BP3",
+      "statement": "An existing P0-P4 or P8 test regressed, or the mock path behavior changed.",
+      "verify": "See LP6: every prior suite passes at its established count; the mock runner path is unchanged.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - prior suites at established counts; mock path unchanged."
+    },
+    {
+      "id": "BP4",
+      "statement": "The undo safety (BP7 from P3) was broken: undo now blind-resets over genuinely-uncommitted USER work.",
+      "verify": "After the checkpoint stages the goal's changes (LP2) the tree is clean so undo works; but a test with a SEPARATE uncommitted user file the checkpoint did NOT stage still makes undo REFUSE (or preserve it). Undo never blind-clobbers user work.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - undo still refuses over a separate unreported user file (BP7 intact); staging is selective not add -A."
+    },
+    {
+      "id": "BP5",
+      "statement": "The maker edited or deleted criteria.json, or declared the goal done itself.",
+      "verify": "criteria.json is byte-identical to the orchestrator-signed version except orchestrator-written status/history/evidence flips; the maker's report never sets status=success.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - criteria.json unflipped at grade time; no maker success flip."
+    },
+    {
+      "id": "BP6",
+      "statement": "`--dangerously-skip-permissions` made unconditional, OR the gate framed as a security guarantee (regressing P3/B5).",
+      "verify": "`_claude_permission_flags` stays env-gated (default off); every gate mention is framed as an anti-drift guardrail, not a security/correctness guarantee.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - skip flag env-gated default off; gate framed as anti-drift guardrail not security."
+    }
+  ]
+}

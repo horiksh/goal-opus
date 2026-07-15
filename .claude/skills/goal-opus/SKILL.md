@@ -327,6 +327,15 @@ a reviewable diff. Do not prune inline during a goal run.
   fixture must be genuine, not hand-built — the verifier re-captured its own to confirm). Regression
   trigger: after any change to the claude-turn adapter, re-run HP1 (unwrap inner report) + HP2
   (envelope usage) on the real fixture + HP5 (P0–P4 no regression). Baseline: 1 iteration to all-pass.
+- [2026-07-13] agentic-os-P9 — `goals/2026-07-13-p9-live-hardening/criteria.json`
+  (6 criteria LP1–LP6, 6 banned outcomes). Live-hardening: fixed the 5 integration bugs the FULL live
+  §8 surfaced (UTF-8/cp932 on every subprocess; checkpoint stages product changes so undo reverts real
+  diffs; queue consumption; resume-after-halt; None-guard). Passed in 1 iteration. Introduced the
+  **faithful fake-`claude` stub** substrate (STATE.md Lessons learned 2026-07-13): a stub emitting the
+  real envelope shape + non-ASCII + a real created file, driving the REAL runner deterministically —
+  the verifier wrote its OWN to confirm. Regression trigger: after any real-runner/checkpoint/queue
+  change, re-run LP1 (non-ASCII decode) + LP2 (checkpoint stages + undo reverts) + BP4 (undo still
+  refuses over user work). Baseline: 1 iteration to all-pass.
 - [2026-07-12] agentic-os-P4 — `goals/2026-07-12-p4-observability-notification/criteria.json`
   (4 criteria OP1–OP4, 7 banned outcomes). Observability & notification on top of P3: tailable
   per-iteration run-status + at-a-glance `status` + push-notify hook (finish/block/budget/decline),
@@ -353,3 +362,4 @@ a reviewable diff. Do not prune inline during a goal run.
 | 2026-07-12 | agentic-os-P3 | 1 | success (undo/land-gate/decline; dirty-tree-undo refusal tested) |
 | 2026-07-12 | agentic-os-P4 | 1 | success (tailable status + push-notify; completes v1 core P0–P4) |
 | 2026-07-13 | agentic-os-P8 | 1 | success (real-runner hardening; born from the §8 live finding) |
+| 2026-07-13 | agentic-os-P9 | 1 | success (live-hardening: 5 §8 bugs fixed; faithful fake-claude stub) |
