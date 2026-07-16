@@ -1,0 +1,127 @@
+{
+  "goal": "U2 — extend the U1 read-only observatory with the living loop: a one-shot functional 'you are here' marker transition, a scrubbable per-iteration flight-recorder timeline reconstructed from run-log.jsonl, and a virtualized run-log panel with lazy drill-down — verified live against the frozen C·Helm design direction.",
+  "created": "2026-07-16",
+  "slice": "U2 (PRD docs/UI-PRD.md §7)",
+  "target": "D:\\horil\\agentic-os",
+  "max_iterations": 5,
+  "status": "success",
+  "note": "Per-PHASE subset of the whole-product seed (docs/ui-criteria.seed.json). U2 scopes C4/C8/C10/C12/C15 (re-verified with real motion present) + two U2-specific criteria (U2-LOOP, U2-FR). U16 code-verified NO (neither the run-log `iteration` nor `goal_end` event carries criteria counts — see GOAL.md); the timeline reconstructs stages+tokens+verdict, NOT a criteria-over-time chart. Fixtures-only, deterministic, no live `claude`. OUT of scope: U3, U4, C14 live, SSE. Vision-verify is mandatory; temporal claims use before/after frame-pairs. BV1–BV16 folded verbatim from docs/design/design-direction.md. RESOLVED: success in 1 iteration (reports/iter-1.json) — verifier PASS on all 7 criteria + 22 banned outcomes untriggered.",
+  "screenshot_procedure": {
+    "capture_script": "python ui/capture_screens.py --out <out_dir> [--only <view>]  (boots the REAL loopback dash server per fixture, then the frozen headless-Chrome capture). The verifier RE-RUNS this itself; it never grades the maker's images.",
+    "capture_command": "\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --headless=new --disable-gpu --hide-scrollbars --force-color-profile=srgb --window-size=1440,900 --user-data-dir=<fresh-tmp> --screenshot=<out>.png <url>",
+    "anchors": {
+      "design_direction": "D:\\horil\\agentic-os\\docs\\design\\design-direction.md",
+      "references": "D:\\horil\\agentic-os\\docs\\design\\references\\R3-helm-home-live-run.png",
+      "baselines": "D:\\horil\\agentic-os\\docs\\design\\baselines\\  (13 promoted U1 views — regression anchor)",
+      "contrast_validator": "python docs/design/mocks/contrast-check.py  (exits 0)"
+    },
+    "no_regression_views": [
+      "home-live", "home-live--1280", "home-live--regressed", "home-live--reduced-motion",
+      "home-live--light", "home-focus", "home-live--secret-fixture", "home-not-installed",
+      "home-first-run", "home-loading", "home-torn-read", "home-stale", "home-crashed"
+    ],
+    "new_u2_views": [
+      "loop-flight-recorder", "loop-flight-recorder--reduced-motion", "run-log-virtualized"
+    ],
+    "frame_pairs": [
+      "loop-stage-before / loop-stage-after — across a stage change (VERIFIER→LAND-GATE): the 'you are here' marker moved to the newly-active stage; exactly ONE focal element animated (budget=1); accent stayed on the single live element (BV13/BV4/U2-LOOP).",
+      "ring-before / ring-after — across a criteria flip: the % ring value moved by DATA (segment un-fill/fill), NOT an eased monotonic fake-fill tween (BV2/C4)."
+    ]
+  },
+  "criteria": [
+    {
+      "id": "C4",
+      "statement": "'% to goal' stays rubric-derived and NON-MONOTONIC now that motion exists: a criterion flip nudges the ring (including DOWN) with NO fake-fill / eased-lie / monotonic auto-fill animation; Default-FAIL 0/M renders an honest 'not started' zero (no animated fill); 100% appears only on a verifier-confirmed land_gate 'land' for the ACTIVE goal.",
+      "verify": "python -m pytest tests/test_u2.py -k 'ring or progress or nonmonotonic' -q against the regressed fixture (observed series 4/5 -> 3/5, and the seed 2/5->3/5->2/5): assert the ring un-fills on the drop (no high-water lock), 0/M is an honest zero with no animated fill, 100% only with a land_gate land for the active goal. TEMPORAL: capture the ring-before/ring-after frame-pair across a criteria change and confirm the ring moved by data (segment (un)fill), not an eased fill tween. Maps U14/U15/B6/BV2/BV14.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json — pytest -k 'ring or progress or nonmonotonic' 5 passed; ring-before.png (4/5·80%) vs ring-after.png (3/5·60% ▼ dropped) un-fills by data, not a tween; 100% only on an active-goal land_gate (cross-goal land does not count).",
+      "history": [
+        { "iteration": 1, "from": "failing", "to": "passing", "evidence": "reports/iter-1.json (C4 verdict pass)" }
+      ]
+    },
+    {
+      "id": "C8",
+      "statement": "With prefers-reduced-motion: reduce (media feature OR the in-app toggle), EVERY new U2 animation (the one-shot loop marker transition, and any flight-recorder/run-log motion) is REPLACED by a static color+icon state indicator that still conveys the state change — not merely deleted — and the in-app reduced-motion toggle still works. This is the first slice where reduced-motion actually has motion to reduce.",
+      "verify": "Capture home-live--reduced-motion AND loop-flight-recorder--reduced-motion. Programmatic (python -m pytest tests/test_u2.py -k 'reduced_motion'): assert the rm-toggle sets data-reduce-motion and that each animated element has a static color+icon fallback class active under reduce (state still legible). Vision: Read both --reduced-motion stills — the current stage / active iteration remains identifiable by color+icon+label with no motion-only signifier. Maps U37/B8/BV4 (WCAG 2.2 SC 2.3.3 / C39).",
+      "status": "passing",
+      "evidence": "reports/iter-1.json — pytest -k reduced_motion 3 passed; home-live--reduced-motion + loop-flight-recorder--reduced-motion legible statically (accent border + livemark + 'YOU ARE HERE'); finite keyframes hard-suppressed (0.001ms swap, not deleted); in-app rm-toggle works.",
+      "history": [
+        { "iteration": 1, "from": "failing", "to": "passing", "evidence": "reports/iter-1.json (C8 verdict pass)" }
+      ]
+    },
+    {
+      "id": "C10",
+      "statement": "The run-log panel is VIRTUALIZED (renders only visible rows) and stays responsive on a large log; oversized individual records are capped and lazy-loaded behind an EXPAND link — never inlined, never a full-file DOM dump.",
+      "verify": "L1 fixture: a 10,000-line run-log.jsonl with ONE oversized record. Boot the real dash server against it; python -m pytest tests/test_u2.py -k 'virtualiz or oversized or runlog' -q asserts (a) the initial run-log DOM node count is BOUNDED (a small window, orders of magnitude below 10,000 — no full-file dump), (b) the oversized record's bytes are NOT present in the initial DOM (behind an expand affordance), (c) tail-by-cursor advances without re-sending the whole file. Capture run-log-virtualized for the still. Maps U38/U39/B9/BV8.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json — pytest -k 'virtualiz or oversized or runlog' 7 passed; 10k-line log renders only the 40-row tail (bounded <200 nodes); oversized record (idx 9995) bytes absent from initial DOM, behind a lazy /api/runlog-record fetch; tail-by-cursor via /api/runlog.",
+      "history": [
+        { "iteration": 1, "from": "failing", "to": "passing", "evidence": "reports/iter-1.json (C10 verdict pass)" }
+      ]
+    },
+    {
+      "id": "U2-LOOP",
+      "statement": "The maker->verifier->land-gate->write-back graph gains a ONE-SHOT 'you are here' marker transition fired on the stage-entry event: it animates ONCE per stage change (NO idle/ambient/heartbeat pulse — the pulse rule was removed at freeze), honors a one-focal-animation budget (=1 animating element at a time), and paints the accent (--accent) on ONLY the single live/active element in the frame. The active stage stays identifiable STATICALLY (color + icon + 'YOU ARE HERE' label + position).",
+      "verify": "(a) CSS/DOM audit (python -m pytest tests/test_u2.py -k 'loop_motion or oneshot' + code read of app.css/app.js): the live-node / marker has NO infinite or idle keyframe animation (no 'animation: ... infinite', no perpetual pulse on the active marker); the transition is triggered by a stage-change, one-shot. (b) Accent budget: DOM/CSS read of the home-live frame — --accent / its glow appears on the single live element only, not on idle nodes, static labels, or borders (BV13). (c) TEMPORAL frame-pair loop-stage-before/after across VERIFIER->LAND-GATE: the marker moved to the newly-active stage and exactly ONE focal element transitioned (budget=1). (d) Static identifiability: home-live still shows a visible 'you are here' marker (BV12). Reduced-motion fallback is covered by C8. Maps U31/U32/BV4/BV11/BV12/BV13.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json — pytest -k 'loop_motion or oneshot' 4 passed; app.css keyframes all '1 both' (no infinite/idle pulse); app.js fires the one-shot ONLY on a real stage change; loop-stage-before/after frame-pair shows the marker moved VERIFIER->LAND-GATE with exactly one focal element, accent budget=1; home-live shows a static 'YOU ARE HERE' marker (BV12).",
+      "history": [
+        { "iteration": 1, "from": "failing", "to": "passing", "evidence": "reports/iter-1.json (U2-LOOP verdict pass)" }
+      ]
+    },
+    {
+      "id": "U2-FR",
+      "statement": "A scrubbable per-iteration 'flight-recorder' timeline with play / pause / step controls, reconstructed from .agentic-os/run-log.jsonl (the append-only journal — NOT the destroyed-per-iteration run-status.json), renders each iteration as the 4 LABELED stages (maker->verifier->land-gate->write-back) with that iteration's tokens + verdict — NOT a raw event dump. Captured as the new canonical view loop-flight-recorder.",
+      "verify": "Multi-iteration run-log fixture. (a) Provenance (python -m pytest tests/test_u2.py -k 'flight or timeline'): the timeline model is derived from run-log events (iter_begin/iteration/land_gate/goal_end), NOT run-status.json — assert the number of timeline steps == the run-log iteration count and each step exposes the 4 stage labels + that iter's tokens/verdict. (b) Controls: play/pause/step exist in the DOM, are keyboard-reachable (visible focus ring), and stepping advances the selected iteration and re-renders its 4 stages. (c) NOT a raw dump: the timeline's primary rendering is the 4 abstracted stages per iteration (U23); raw events only on drill-down. (d) Capture loop-flight-recorder (+ --reduced-motion). Maps U34/U23; U16 resolved NO (no criteria-over-time claim).",
+      "status": "passing",
+      "evidence": "reports/iter-1.json — pytest -k 'flight or timeline' 8 passed; steps == run-log iteration count (7) != run-status active_iteration (3) => sourced from run-log.jsonl not run-status; each step exposes the 4 labeled stages + tokens/verdict; play/pause/step/prev native buttons keyboard-reachable with the --focus ring; not a raw dump (iter_begin/session_start absent from the surface).",
+      "history": [
+        { "iteration": 1, "from": "failing", "to": "passing", "evidence": "reports/iter-1.json (U2-FR verdict pass)" }
+      ]
+    },
+    {
+      "id": "C15",
+      "statement": "U2 adds NO write handle to any CLI-owned file: reader/server stay READ-ONLY; all new UI state (timeline play/pause/step cursor, observed-% series) lives in memory or a UI-owned directory OUTSIDE .agentic-os/ — never mutating run-status.json / run-log.jsonl / queue.json / STATE.md / .git / criteria.json.",
+      "verify": "Static: grep the ui/ additions for any open(...,'w'|'a') / write_text / unlink / os.replace targeting a CLI-owned path (expect none outside a UI-owned dir). Runtime (python -m pytest tests/test_u2.py -k 'read_only'): snapshot mtimes+hashes of every CLI-owned file, boot the server, exercise the flight recorder + run-log panel via /api/*, assert every CLI-owned file's mtime AND bytes are unchanged. Maps B3/N5.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json — pytest -k read_only 3 passed; server.py has zero write calls; reader.py's only write is _persist_series -> observed-series.json in a UI-owned dir OUTSIDE .agentic-os/ (and early-returns when ui_dir is None, the dash default); every CLI-owned file's mtime+sha256 unchanged after exercising both surfaces + all /api/* routes.",
+      "history": [
+        { "iteration": 1, "from": "failing", "to": "passing", "evidence": "reports/iter-1.json (C15 verdict pass)" }
+      ]
+    },
+    {
+      "id": "C12",
+      "statement": "Each shipped U2 surface passes VISION-VERIFY: the independent verifier RE-CAPTURES the scripted screenshots and judges them BY READING the images against docs/design/design-direction.md + references + the BV-list (BV1–BV16). The verdict NAMES the image files it viewed; ANY BV item triggered = fail. The 13 promoted U1 baselines must still match (no regression).",
+      "verify": "Run python ui/capture_screens.py --out goals/2026-07-16-u2-living-loop/screens/verify-iter-N/ (all no_regression_views + new_u2_views + the frame_pairs). The verifier READS every captured PNG AND the reference/baseline PNGs and judges three ways: (1) craft vs design-direction + R3; (2) regression vs the 13 baselines; (3) instant-fail vs BV1–BV16. Temporal BVs (BV2/BV4/BV13) judged via the before/after frame-pairs, not a single still. PASS requires: verdict names viewed files; every BV clear; all 13 baselines match; contrast-check.py exits 0. Maps §7 gate / B12 (repo invariant: visual work verified by LOOKING).",
+      "status": "passing",
+      "evidence": "reports/iter-1.json — verifier re-ran capture_screens.py (21/21), Read R3 + all 13 baselines + the 3 new U2 views + 4 frame-pairs and named them; all 13 baselines match (only the live 'updated Ns ago' text differs); new surfaces on-brand (continuous canvas + 2 rails, HUD type); BV1–BV16 all clear; contrast-check.py exit 0.",
+      "history": [
+        { "iteration": 1, "from": "failing", "to": "passing", "evidence": "reports/iter-1.json (C12 verdict pass; images named)" }
+      ]
+    }
+  ],
+  "banned_outcomes": [
+    { "id": "BV1", "statement": "Stale/frozen data shown as live (no staleness indicator; a spinner that lies).", "verify": "home-stale still: no visible staleness badge (icon+text+elapsed) while data reads as live -> FAIL.", "iter1_triggered": false },
+    { "id": "BV2", "statement": "'% to goal' implies linear/monotonic progress, uses fake-fill animation, shows 100% without a verifier-confirmed land-gate pass, or is derived from the agent's self-assessment instead of the rubric.", "verify": "Still: 100% without a visible land-gate pass, ring without the N/M denominator, or no drop affordance. Fake-fill (temporal) + self-assessment provenance verified by C4 / the ring frame-pair -> FAIL.", "iter1_triggered": false },
+    { "id": "BV3", "statement": "Any run/goal/criterion state conveyed by color alone.", "verify": "Grayscale still: any status token lacking icon + shape + text -> FAIL (see C6-family / C8 stills).", "iter1_triggered": false },
+    { "id": "BV4", "statement": "'Visionary' delivered as ambient/decorative motion that doesn't map to a real state change, or motion that ignores prefers-reduced-motion.", "verify": "home-live--reduced-motion / loop-flight-recorder--reduced-motion still: any motion-only signifier with no static color+icon fallback -> FAIL. Ambient-motion-maps-to-a-change verified via the loop-stage frame-pair or the Human slot.", "iter1_triggered": false },
+    { "id": "BV5", "statement": "Skills-installed is reduced to a bare list (name only) with no version/scope/enabled/permissions/active-state.", "verify": "The U1 skills cards must not regress: home-live still shows version + scope + enabled/active + permissions per card -> else FAIL.", "iter1_triggered": false },
+    { "id": "BV6", "statement": "A torn/partial read rendered as 'no run', a crash, or a blank dashboard instead of last-known-good.", "verify": "home-torn-read still: last-known-good rendered, no blank/crash/'no run' -> else FAIL.", "iter1_triggered": false },
+    { "id": "BV7", "statement": "A secret string (e.g. api_key=...) from STATE.md/run-log visible in a captured frame or export.", "verify": "home-live--secret-fixture still + DOM/text read (incl. the NEW timeline + run-log panels): the planted secret (SEKRET123 / hunter2) must not appear -> else FAIL.", "iter1_triggered": false },
+    { "id": "BV8", "statement": "The run-log panel dumps the whole file into the DOM; or a mechanic requires leaving the dashboard for the CLI; or the token meter is hidden behind a command/tab (not always-on).", "verify": "run-log-virtualized still + DOM read: run-log node count bounded (not a full-file dump); token meter + all four mechanics visible without the CLI (see C10/C13) -> else FAIL.", "iter1_triggered": false },
+    { "id": "BV9", "statement": "Text contrast below 4.5:1 on any reference-view capture — including the HUD micro-labels (the R1 reject: thin low-contrast micro-text).", "verify": "Any U2 capture + token diff vs the design-direction tables / python docs/design/mocks/contrast-check.py (exit 0). Any new text run below 4.5:1 on its true worst-case ground -> FAIL.", "iter1_triggered": false },
+    { "id": "BV10", "statement": "Layout is boxed, evenly-tiled cards on a flat page rather than one continuous near-black canvas + two rails.", "verify": "home-live still + a 1280-wide still (no horizontal scroll) -> else FAIL.", "iter1_triggered": false },
+    { "id": "BV11", "statement": "A decorative particle field / ambient background graphic is present, or the loop is rendered as anything other than the labeled maker->verifier->land-gate->write-back graph.", "verify": "home-live / loop-flight-recorder still: no decorative particle/background motion; the loop stays the labeled 4-stage graph -> else FAIL.", "iter1_triggered": false },
+    { "id": "BV12", "statement": "The living-loop graph has no visible 'you are here' stage marker, or the current stage is not identifiable from a single frame.", "verify": "home-live still: a visible 'you are here' marker; the current stage identifiable statically (color+icon+label+position) -> else FAIL.", "iter1_triggered": false },
+    { "id": "BV13", "statement": "The accent (--accent teal-cyan) appears on more than the single live/active element in the frame (accent as decoration, not an earned signal).", "verify": "home-live still (DOM/CSS read): accent confined to the single live element. The one-focal-animation budget=1 verified via the loop-stage frame-pair -> else FAIL.", "iter1_triggered": false },
+    { "id": "BV14", "statement": "The % ring/meter cannot be seen to be non-monotonic — no visible drop affordance/history when a criterion regresses (looks like a one-way fill).", "verify": "home-live / home-live--regressed still: segmented un-fill + downward sparkline + '▼ dropped' annotation present -> else FAIL.", "iter1_triggered": false },
+    { "id": "BV15", "statement": "UI copy frames the Default-FAIL gate as a correctness/security guarantee rather than a gameable anti-drift guardrail.", "verify": "Copy audit of any captured frame / the timeline + log copy: any text framing the gate as a security/correctness guarantee -> FAIL.", "iter1_triggered": false },
+    { "id": "BV16", "statement": "A keyboard-focused control shows no visible focus ring (or outline:none with no replacement).", "verify": "home-focus still + a capture with a flight-recorder control focused: a --focus-colored ring (>=3:1) on the focused control -> else FAIL.", "iter1_triggered": false },
+    { "id": "BX1", "statement": "The UI writes to or corrupts any CLI-owned file (run-status.json, run-log.jsonl, queue.json, STATE.md, .git, criteria.json). v1 is read-only.", "verify": "See C15 runtime check: any CLI-owned file mtime/bytes changed after exercising the UI -> FAIL.", "iter1_triggered": false },
+    { "id": "BX2", "statement": "Any of the 13 promoted U1 baselines no longer matches after U2 (a regressed canonical view) without orchestrator re-promotion.", "verify": "Re-capture the no_regression_views and compare against docs/design/baselines/; an unexplained regression -> FAIL (see C12).", "iter1_triggered": false },
+    { "id": "BX3", "statement": "An existing test was edited or deleted, OR tests/test_u2.py depends on the never-committed conftest.py / the engine (P0–P9) test suite instead of being self-contained like test_u1.py.", "verify": "git diff shows no edits/deletions to existing tests; python -m pytest tests/test_u2.py -q passes STANDALONE on a fresh checkout (no `base` fixture / conftest dependency) -> else FAIL.", "iter1_triggered": false },
+    { "id": "BX4", "statement": "criteria.json was modified by the maker.", "verify": "criteria.json unchanged except by the orchestrator's gate flips -> else FAIL.", "iter1_triggered": false },
+    { "id": "BX5", "statement": "A U2 surface signed off by reading code/JSON only (no re-captured screenshots judged against the frozen direction), OR a temporal claim (motion budget / fake-fill / ambient motion) asserted from a single still instead of a before/after frame-pair.", "verify": "The vision-verify verdict must name viewed images and use frame-pairs for BV2/BV4/BV13 -> else FAIL (see C12).", "iter1_triggered": false },
+    { "id": "BX6", "statement": "A U2 test or capture requires network access or a live `claude` (U2 is fixtures-only / deterministic).", "verify": "Tests + capture run offline against ui.fixtures; any network/live-claude dependency -> FAIL.", "iter1_triggered": false }
+  ]
+}

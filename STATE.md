@@ -495,3 +495,16 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   the target's Open failures): the committed engine suite `tests/test_p0..p9` needs a never-committed
   `conftest.py` (`base` fixture) → 38 errors on a fresh clone; test_u1 is self-contained. NEXT: `/goal-opus`
   **U2 (the living loop)** — motion + flight-recorder timeline + virtualized run-log.
+- [2026-07-16] Ran `/goal-opus` on **U2 — the living loop** (agentic-os UI slice, PRD §7;
+  target `D:\horil\agentic-os`). **Success in 1 iteration** (registered goal-maker +
+  goal-verifier on Opus). System-level significance: this **closes the D7 "NOT yet
+  E2E-tested" note** — the vision-verify pipeline is now validated on a **motion-bearing**
+  slice. The verifier re-captured its own screenshots, named every image it viewed, and
+  judged the **temporal** BVs (fake-fill/ambient-motion/one-focal-budget) from
+  **before/after frame-pairs** (`loop-stage-*`, `ring-*`), not stills — exactly the frozen
+  two-frame procedure. U1 (2026-07-16, prior slice, recorded in the TARGET STATE.md) was
+  the first E2E test and proved a BV violation actually fails a run (BV9 contrast on its
+  iter-1); U2 adds the frame-pair temporal-verification path. Eval-suite + Run-log entries
+  added to the goal-opus skill; product committed in the target; 3 new canonical views
+  promoted to the target's baselines. Loop machinery: no thrash, no protocol deviation.
+  Workdir `goals/2026-07-16-u2-living-loop/` (criteria.json all-pass, reports/iter-1.json).
