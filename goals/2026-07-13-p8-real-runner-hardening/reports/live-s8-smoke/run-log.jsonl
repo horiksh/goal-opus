@@ -1,0 +1,9 @@
+{"ts": "2026-07-13T01:51:19", "event": "session_start", "session_id": "20260713015119-33316", "mode": "real", "goals_queued": 1, "iteration_budget": 4, "token_budget": 500000, "no_progress_threshold": 2}
+{"ts": "2026-07-13T01:51:20", "event": "goal_start", "goal": "g1", "max_iterations": 2}
+{"ts": "2026-07-13T01:51:20", "event": "iter_begin", "goal": "g1", "iter": 1, "session_id": "20260713015119-33316"}
+{"ts": "2026-07-13T01:52:14", "event": "iteration", "goal": "g1", "iter": 1, "agg_iter": 1, "tokens": 2020, "cum_tokens": 2020, "changed": true, "verdict": "success", "note": null}
+{"ts": "2026-07-13T01:52:14", "event": "land_gate", "goal": "g1", "decision": "land", "note": "evidence present -> clean landed success; undo pointer recorded (U33/B11)."}
+{"ts": "2026-07-13T01:52:14", "event": "goal_end", "goal": "g1", "state": "success", "iterations": 1, "tokens": 2020, "note": null, "undo_pointer": "f1c0de43239a1f51ac3092f4baf90e43e64348cc", "session_id": "20260713015119-33316"}
+{"ts": "2026-07-13T01:52:14", "event": "notify", "notify_event": "finish", "goal": "g1", "state": "success", "detail": null, "hook_configured": false, "delivered": false, "hook_exit": null, "hook_error": null, "note": "push-notify (U35) on a notable event; optional + non-fatal + local + secret-scrubbed."}
+{"ts": "2026-07-13T01:52:14", "event": "idle", "note": "queue-drained", "goals_run": 1}
+{"ts": "2026-07-13T01:52:14", "event": "session_end", "state": "success"}

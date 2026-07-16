@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "mode": "real",
+  "session_id": "20260713015119-33316",
+  "state": "success",
+  "started_at": "2026-07-13T01:51:19",
+  "updated_at": "2026-07-13T01:52:14",
+  "ended_at": "2026-07-13T01:52:14",
+  "active_goal": "g1",
+  "active_iteration": 1,
+  "in_flight": null,
+  "budgets": {
+    "iteration_budget": 4,
+    "token_budget": 500000,
+    "no_progress_threshold": 2
+  },
+  "abort_reason": null,
+  "totals": {
+    "aggregate_iterations": 1,
+    "cumulative_tokens": 2020,
+    "goals_total": 1,
+    "goals_run": 1,
+    "criteria_passing": 0,
+    "criteria_total": 1
+  },
+  "goals": [
+    {
+      "id": "g1",
+      "state": "success",
+      "iterations": 1,
+      "tokens": 2020,
+      "max_iterations": 2,
+      "transitions": [
+        "idle",
+        "running",
+        "success"
+      ],
+      "rubric": "C:\\Users\\horil\\AppData\\Local\\Temp\\claude\\D--horil-agent\\014c4134-f1ba-499e-a254-2aa9cc347103\\scratchpad\\s8-live\\r1.json",
+      "criteria_passing": 0,
+      "criteria_total": 1,
+      "refused_reason": null,
+      "undo_pointer": "f1c0de43239a1f51ac3092f4baf90e43e64348cc",
+      "landed": true
+    }
+  ]
+}

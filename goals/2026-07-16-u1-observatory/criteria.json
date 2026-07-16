@@ -1,0 +1,218 @@
+{
+  "goal": "U1 — a local, loopback-only, READ-ONLY web 'Mission Control' observatory for agentic-os (target D:\\horil\\agentic-os): a `dash` verb boots a 127.0.0.1 + Host-validated server that reads .agentic-os/ live and renders the four mechanics (skills installed · tokens available/used · running goals + lifecycle · % to goal) as panels in the frozen C·Helm design, torn-read-safe, with a staleness indicator, the empty/first-run/not-installed/crash states, and an accessibility baseline (color-independent status, ARIA live regions, reduced-motion) — verified deterministically against fixtures AND by LOOKING (vision-verify) against the frozen design direction. Living-loop MOTION, flight-recorder, virtualized run-log (U2), the dedicated skills-inventory surface + onboarding + glossary (U3), control (U4), and the live >=2-goal acceptance (C14) are OUT OF SCOPE.",
+  "created": "2026-07-16",
+  "max_iterations": 5,
+  "status": "success",
+  "note": "U1 subset of docs/ui-criteria.seed.json (C1-C14), scoped by the orchestrator per PRD §7. C-IDs match the seed for traceability; C15 (read-only guard) is a U1-added positive form of banned B3. Anchors (B13 satisfied): docs/design/design-direction.md v1 + references/R3-helm-home-live-run.png + mocks/helm-home-live-run.reference.html + mocks/contrast-check.py. All verify commands run in the TARGET repo (D:\\horil\\agentic-os). Python pinned as `python`; Chrome full path per design-direction Screenshot procedure. NO live `claude` needed — every criterion is fixture- or capture-based.",
+  "criteria": [
+    {
+      "id": "C1",
+      "statement": "The `dash` server binds loopback-only (127.0.0.1) and REJECTS any request whose Host header is not a localhost allowlist entry (127.0.0.1/localhost/[::1] + optional :port). Loopback bind ALONE is insufficient (DNS-rebinding, Ollama CVE-2024-28224 class).",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k \"loopback or host_header\" -q` PASSES. The test: boots `agentic-os dash --target <tmp> --port 0 --no-open` (or an ephemeral port), asserts (a) the listening socket is 127.0.0.1, NOT 0.0.0.0/:: (assert via the bound sockaddr or netstat), (b) `curl -s -o /dev/null -w '%{http_code}' -H 'Host: evil.example' http://127.0.0.1:<port>/` returns 4xx, (c) `-H 'Host: 127.0.0.1:<port>'` and `-H 'Host: localhost:<port>'` return 200. Maps U9/U10/B4.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C1 pass: 5 tests pass; verifier's own probe — Host evil.example/127.0.0.1.evil.com→403, 127.0.0.1/localhost→200, bind 0.0.0.0 refused (ValueError).",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C1" }]
+    },
+    {
+      "id": "C2",
+      "statement": "A torn/partial run-status.json read is NEVER rendered as 'no run', a crash, or a blank dashboard — the reader retries with backoff and falls back to last-known-good; a subsequent valid write updates the view.",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k torn_read -q` PASSES. The test: seed a valid run-status.json (read once → last-known-good cached), then overwrite with a truncated/mid-write partial (e.g. `{\"schema\":1,\"state\":\"run`), point the reader/`/api/state` at it, assert it returns the last-known-good snapshot WITH no raised exception and no 'no run'/blank/`state:null`; then write a fresh valid file and assert the reader picks up the new value. ALSO confirm on the `home-torn-read` capture (BV6): last-known-good rendered, not blank/crash. Maps U1/B2/BV6.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C2 pass: 3 tests pass; verifier truncated run-status.json mid-JSON → last-known-good retained (passing=3), no exception, home-torn-read.png shows LKG + RECOVERING badge; recovers on next valid write.",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C2" }]
+    },
+    {
+      "id": "C3",
+      "statement": "A crashed run (in_flight={goal,iter} present on disk with no session_end in the run-log) is rendered as a DISTINCT 'crashed / interrupted' state — not 'running', not 'no run'/empty — with an icon+text badge (color-independent).",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k crash -q` PASSES. Fixture: run-status.json with `in_flight={\"goal\":\"g2\",\"iter\":3}` and a run-log.jsonl whose last event is NOT session_end. Assert the derived UI state == a third value distinct from live-running and from not-installed/empty, surfaced with an icon+text badge. ALSO confirm on the `home-crashed` capture: a distinct crashed badge (icon+text+shape), not a spinner, not blank. Maps U6/U24/C3.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C3 pass: 5 tests pass; home-crashed.png shows a distinct '⬣ CRASHED · INTERRUPTED' badge + 'CRASHED HERE' loop marker, distinct from running/idle/empty.",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C3" }]
+    },
+    {
+      "id": "C4",
+      "statement": "'% to goal' is RUBRIC-DERIVED (criteria_passing/criteria_total from run-status.json / the active goal record, NEVER the agent's self-assessment), NON-MONOTONIC (reads the current snapshot with NO high-water lock — it can go DOWN), uses no fake-fill animation, shows an honest 'not started' at Default-FAIL 0/M, shows 100% ONLY when a run-log `land_gate` event with decision=='land' is present, and when a regression is observed shows the drop affordance (segmented un-fill + a downward sparkline from the UI's own observation series + a '▼ dropped X/N → Y/N' annotation naming the failing criteria).",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k progress -q` PASSES. Tests: (a) ring value == run-status current criteria_passing/total (provenance = rubric counts, not any self-score field); (b) feed two successive snapshots 4/5 then 3/5 → the rendered ring shows 3/5 (NOT 4/5 high-water) AND a drop annotation '▼ dropped 4/5 → 3/5' + downward sparkline appears (history = the reader's own in-memory observed series, since the engine's `iteration` event carries NO criteria counts — code-verified); (c) 0/M → 'not started' honest zero, no animated fill / no ring progress; (d) 100% rendered only when a land_gate land event exists (a 5/5 snapshot with no land event does NOT show a landed 100%). ALSO confirm on `home-live` + `home-live--regressed` captures (BV2/BV14). Maps U14/U15/B6.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C4 pass: 4 tests pass; verifier probe — 4/5→3/5 shows 3/5 (no high-water lock) + '▼ dropped 4/5 → 3/5'; 5/5 w/o land event stays un-landed; 100% only on active-goal land_gate 'land'; self-score field ignored.",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C4" }]
+    },
+    {
+      "id": "C5",
+      "statement": "Stale data is NEVER shown as live: liveness is computed from mtime/heartbeat staleness (not a 'running' flag); the UI shows 'updated Ns ago' and, past a threshold, a visible 'stale · possibly dead' badge (icon+text). A frozen frame is never presented as live.",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k stale -q` PASSES. Test: fixture whose run-status.json mtime/updated_at is older than the stale threshold → assert the UI state exposes `stale=true` + an elapsed-seconds value, and the rendered frame carries a stale badge (icon+text), NOT a live indicator. Fresh mtime → not stale, 'updated Ns ago' small. ALSO confirm on the `home-stale` capture (BV1): visible staleness badge while data reads as not-live. Maps U5/B1/BV1.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C5 pass: 3 tests pass; home-stale.png shows '⬣ STALE · POSSIBLY DEAD · 5M' (icon+text+elapsed) + LINK·STALE + RUNNER·DEAD? + red dot; staleness from updated_at vs now, not a running flag.",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C5" }]
+    },
+    {
+      "id": "C6",
+      "statement": "Every run/goal/criterion STATE is conveyed by icon + text label + shape IN ADDITION to color (no color-only state) — for all lifecycle tokens (running/success/aborted/stopped/declined/flagged/held/no-progress/queued) using the design-direction glyph set.",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k color_independent -q` PASSES: a DOM/markup assertion that every status token renders a non-color signifier (a glyph char + a text label), for each lifecycle state. ALSO the verifier confirms on a GRAYSCALE render of `home-live` (BV3): every status remains legible with color removed. Maps U35/B7/BV3 (WCAG 2.2 SC 1.4.1).",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C6 pass: 2 tests pass; home-live.png 'LIFECYCLE KEY' legend renders all 9 tokens as glyph+text; every chip carries an <i> glyph + label; legible with color removed.",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C6" }]
+    },
+    {
+      "id": "C7",
+      "statement": "Live-updating metrics (tokens, %, run state) live in ARIA live regions declared empty at load: aria-live=polite for routine per-iteration updates, assertive/role=alert ONLY for crash/block/budget events; per-iteration rewrites do NOT steal focus.",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k aria -q` PASSES. Assert: (a) the live-region container(s) exist in the initial DOM and are empty at load; (b) the routine-update region is aria-live=polite; (c) a crash/budget/block region is assertive or role=alert; (d) simulating an update does not move document focus. Maps U36/C7 (WCAG 2.2 SC 4.1.3).",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C7 pass: 4 tests pass; #live-polite (aria-live=polite) + #live-assertive (role=alert) empty at load; app.js updates via textContent with no .focus() call → no focus steal.",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C7" }]
+    },
+    {
+      "id": "C8",
+      "statement": "With prefers-reduced-motion: reduce, non-essential motion is REPLACED by a static color+icon fallback (not merely deleted), and an in-app reduced-motion toggle exists. (U1 has no ambient motion; this guards the honest static fallback + the toggle.)",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k reduced_motion -q` PASSES: assert the CSS honors `@media (prefers-reduced-motion: reduce)` (transitions/animations suppressed) and that state changes still convey via a static color+icon fallback (no motion-only signifier), and an in-app toggle control is present in the DOM. ALSO the verifier confirms on `home-live--reduced-motion` (BV4): every state change has a static color+icon fallback. Maps U37/B8/BV4 (SC 2.3.3 / C39).",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C8 pass: 2 tests pass; @media (prefers-reduced-motion: reduce) suppresses motion + a data-reduce-motion override + an in-app #rm-toggle; home-live--reduced-motion.png keeps static color+icon fallbacks.",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C8" }]
+    },
+    {
+      "id": "C9",
+      "statement": "No secret present in STATE.md or run-log.jsonl is re-displayed or exported by the UI: the reader RE-REDACTS at display (the CLI scrub is gameable and does not cover STATE.md/run-status.json — code-verified).",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k secret -q` PASSES. Fixture: inject `api_key=SEKRET123` (and a `password: hunter2`) into STATE.md AND a run-log.jsonl line AND a run-status.json field. Assert the literal secret VALUE string ('SEKRET123'/'hunter2') does NOT appear in the `/api/state` JSON, the rendered DOM, or any export/download route. ALSO confirm on `home-live--secret-fixture` (BV7): planted secret not visible in the frame. Maps U13/B5/BV7.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C9 pass: 2 tests pass; verifier planted its OWN secrets (api_key=REFUTE_ME_9, password: TOPSECRET_XYZ) in STATE.md + run-status (incl. uncovered fields) + run-log → absent from /api/state and served HTML; reader re-redacts independently.",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C9" }]
+    },
+    {
+      "id": "C11",
+      "statement": "The skills panel is NOT a bare name-only list: each installed skill card renders name + version + source/provenance + scope (user vs project) + component breakdown (skill/agents/tools) + permissions/trust + enabled-vs-active state (+ standing context cost + update-available when applicable), read from the installed target's .claude/ payload — at the richness the R3 anchor shows. (The dedicated skills-inventory SURFACE + broken/degraded state + 'did it fire' from run-log analysis are U3.)",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k skills -q` PASSES: against a fixtured installed `.claude/` payload, assert each skill card node exposes the required fields (name, version, scope, >=1 component tag, >=1 permission/trust tag, an enabled/active state token). ALSO the verifier confirms on the `home-live` capture's skills rail (BV5): cards carry version/scope/permissions/active-state, not a bare list. Maps U25(subset)/B11/BV5.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C11 pass: 2 tests pass; home-live.png skills rail — goal-opus v0.6.0 (components/PROJECT/WRITES-FILES/RUNS-CODE/FIRED/ACTIVE/standing ctx), prd v1.0 (DOCS-ONLY/V1.0→V1.1/UPDATE), agents ENABLED — not a bare list.",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C11" }]
+    },
+    {
+      "id": "C12",
+      "statement": "VISION-VERIFY: the independent verifier RE-CAPTURES the U1 canonical views with the scripted procedure and JUDGES BY LOOKING at them against the frozen design direction + references/R3 + the BV-list — naming the image files it viewed; any BV violation fails.",
+      "verify": "cd D:\\horil\\agentic-os; the verifier runs `python ui/capture_screens.py --out D:\\horil\\agent\\goals\\2026-07-16-u1-observatory\\screens\\verify-iter-N` (boots `agentic-os dash` per-state against tests/fixtures/u1/* and captures via `\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --headless=new --disable-gpu --hide-scrollbars --force-color-profile=srgb --window-size=1440,900 --user-data-dir=<fresh-tmp> --screenshot=<out>.png <url>`), producing the U1 view set: home-live, home-live--regressed, home-live--reduced-motion, home-live--light, home-focus, home-live--secret-fixture, home-not-installed, home-first-run, home-loading, home-torn-read, home-stale, home-crashed (+ a 1280-wide home-live for BV10). The verifier then Reads every captured PNG AND references/R3-helm-home-live-run.png and judges craft vs the direction + instant-fail vs the BV-list; PASS requires the verdict to NAME the viewed files and clear every BV item. Maps §7 gate / B12 / repo invariant.",
+      "status": "passing",
+      "evidence": "reports/iter-2.json — 3-lens adversarial panel UNANIMOUS PASS. All three re-captured/re-probed independently; BV9 cleared (active name var(--text) #0D1622 18.18:1; done-label var(--st-success) #17752F 5.80:1 on light); dark unchanged; every BV1–BV16 clear; new contrast_hardcode guard proven real. Vision lens named all 13 viewed images + R3.",
+      "history": [
+        { "iteration": 1, "flip": "stays failing", "evidence": "reports/iter-1.json#C12 — dark views strong vs R3, but BV9 TRIGGERED on home-live--light.png: hardcoded #fff active-goal name white-on-white + #cfeed8 done-label pale-green-on-white; token-only contrast-check missed it. Fix in iter-2." },
+        { "iteration": 2, "flip": "failing→passing", "evidence": "reports/iter-2.json — BV9 cleared (2 hardcoded colors → var(--text)/var(--st-success)); 3-lens panel unanimous PASS, no regression." }
+      ]
+    },
+    {
+      "id": "C13",
+      "statement": "The dashboard is self-sufficient for the four mechanics without leaving it for the CLI: skills, tokens (cap vs cumulative + per-iteration burn + at-current-rate forecast), running goals + lifecycle, and % — all visible in `home-live`; the token meter is ALWAYS-ON and passive (not behind a command/tab).",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k mechanics -q` PASSES: on a fixtured live run, assert the rendered home view contains all four mechanic panels (skills / tokens / goals+queue / % ring) AND the token meter shows cap, cumulative used, this-iteration burn, and an at-current-rate forecast — with none requiring a CLI command. ALSO confirm on `home-live` (BV8): token meter + all four mechanics visible without the CLI. Maps S2/S3/S4/S5/U17/U18/B10/BV8.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C13 pass: 2 tests pass; home-live.png shows all four mechanics without the CLI; always-on token meter with CAP 200k + used 128.4k/64% + this-iter 18.2k + '~3 iters left' forecast.",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C13" }]
+    },
+    {
+      "id": "C15",
+      "statement": "READ-ONLY guard: the v1 UI process holds NO write handle to any CLI-owned file (run-status.json, run-log.jsonl, queue.json, STATE.md, .git, criteria.json) and does not create/modify anything under .agentic-os/. Any UI-derived state (e.g. the observed % series) is in-memory or under a UI-owned path OUTSIDE .agentic-os/.",
+      "verify": "cd D:\\horil\\agentic-os; `python -m pytest tests/test_u1.py -k read_only -q` PASSES: snapshot the mtimes + sha256 of every CLI-owned file in a fixtured target, boot `dash`, drive several `/api/state` poll cycles (incl. torn/stale/crash fixtures), then assert all CLI-owned files are byte-identical (unchanged mtime+hash) and no new files appeared under .agentic-os/. Maps B3 (positive form) / N2/N5.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json C15 pass: 6 tests pass; verifier snapshotted sha256+mtime of all CLI-owned files, drove 6 poll cycles → byte+mtime identical, no new .agentic-os/ file; observed-series lives outside .agentic-os/ (UI-owned dir or in-memory).",
+      "history": [{ "iteration": 1, "flip": "failing→passing", "evidence": "reports/iter-1.json#C15" }]
+    }
+  ],
+  "banned_outcomes": [
+    {
+      "id": "BV1",
+      "statement": "Stale/frozen data shown as live (no staleness indicator; a spinner that lies).",
+      "verify": "`home-stale` still: no visible staleness badge (icon+text+elapsed) while data reads as live -> FAIL (see C5)."
+    },
+    {
+      "id": "BV2",
+      "statement": "'% to goal' implies linear/monotonic progress, uses fake-fill animation, shows 100% without a verifier-confirmed land-gate pass, or is derived from the agent's self-assessment instead of the rubric.",
+      "verify": "Still: 100% without a visible land_gate land event, or a ring with no N/M denominator, or a monotonic high-water lock -> FAIL (see C4). Fake-fill animation checked on a home-live before/after frame or the reduced-motion still."
+    },
+    {
+      "id": "BV3",
+      "statement": "Any run/goal/criterion state conveyed by color alone.",
+      "verify": "Grayscale `home-live` still: any status token without icon + shape + text -> FAIL (see C6)."
+    },
+    {
+      "id": "BV4",
+      "statement": "'Visionary' delivered as ambient/decorative motion that doesn't map to a real state change, or motion that ignores prefers-reduced-motion.",
+      "verify": "`home-live--reduced-motion` still: any state change lacking a static color+icon fallback, or any ambient/idle motion present -> FAIL (see C8)."
+    },
+    {
+      "id": "BV5",
+      "statement": "Skills-installed is reduced to a bare list (name only) with no version/scope/enabled/permissions/active-state.",
+      "verify": "`home-live` skills rail still: any card missing version/scope/permissions/active-state -> FAIL (see C11)."
+    },
+    {
+      "id": "BV6",
+      "statement": "A torn/partial read rendered as 'no run', a crash, or a blank dashboard instead of last-known-good.",
+      "verify": "`home-torn-read` still: blank/crash/'no run' instead of last-known-good -> FAIL (see C2)."
+    },
+    {
+      "id": "BV7",
+      "statement": "A secret string (e.g. api_key=…) from STATE.md/run-log visible in a captured frame or export.",
+      "verify": "`home-live--secret-fixture` still + DOM/text read: the planted secret VALUE appears -> FAIL (see C9)."
+    },
+    {
+      "id": "BV8",
+      "statement": "The run-log panel dumps the whole file into the DOM; OR a mechanic requires leaving the dashboard for the CLI; OR the token meter is hidden behind a command/tab (not always-on).",
+      "verify": "`home-live` still: token meter + all four mechanics visible without the CLI -> else FAIL (see C13). (U1 ships no run-log panel; the whole-file-dump clause is a U2 concern and trivially not-triggered here.)"
+    },
+    {
+      "id": "BV9",
+      "statement": "Text contrast below 4.5:1 on any reference-view capture — including the HUD micro-labels (the R1 reject: thin low-contrast micro-text).",
+      "verify": "Any capture + `python mocks/contrast-check.py` (exit 0 ALL PASS) + a code-token diff of the UI tokens.css vs the design-direction tables (exact hex) -> any sub-4.5:1 text -> FAIL."
+    },
+    {
+      "id": "BV10",
+      "statement": "Layout is boxed, evenly-tiled cards on a flat page rather than one continuous near-black canvas + two rails (the R2 reject; the R1 'not boxed cards' anchor).",
+      "verify": "`home-live` 1440-wide still AND a 1280-wide still (no horizontal scroll): a flat tiled card-grid instead of canvas+rails -> FAIL."
+    },
+    {
+      "id": "BV11",
+      "statement": "A decorative particle field / ambient background graphic is present, OR the loop is rendered as anything other than the labeled maker→verifier→land-gate→write-back graph.",
+      "verify": "`home-live` still: an ambient particle/background graphic, or a loop not drawn as the 4 labeled stages -> FAIL."
+    },
+    {
+      "id": "BV12",
+      "statement": "The living-loop graph has no visible 'you are here' stage marker, or the current stage is not identifiable from a single frame.",
+      "verify": "`home-live` still: no YOU-ARE-HERE marker / current stage not identifiable statically (color+icon+label+position) -> FAIL."
+    },
+    {
+      "id": "BV13",
+      "statement": "The accent (--accent teal-cyan) appears on more than the single live/active element in the frame (accent as decoration, not an earned signal).",
+      "verify": "`home-live` still: accent on static labels/borders/idle panels beyond the one live/active element -> FAIL."
+    },
+    {
+      "id": "BV14",
+      "statement": "The % ring/meter cannot be seen to be non-monotonic — no visible drop affordance/history when a criterion regresses (looks like a one-way fill).",
+      "verify": "`home-live--regressed` still: no segmented un-fill + downward sparkline + '▼ dropped' annotation on a regression -> FAIL (see C4)."
+    },
+    {
+      "id": "BV15",
+      "statement": "UI copy frames the Default-FAIL gate as a correctness/security guarantee rather than a gameable anti-drift guardrail.",
+      "verify": "Copy audit of any captured frame / legend: gate framed as a security/correctness guarantee -> FAIL. (PRD B14.)"
+    },
+    {
+      "id": "BV16",
+      "statement": "A keyboard-focused control shows no visible focus ring (or outline:none with no replacement).",
+      "verify": "`home-focus` still: a focused control with no --focus-colored ring (>=3:1) -> FAIL (see C7-adjacent / WCAG 2.4.11)."
+    },
+    {
+      "id": "B3",
+      "statement": "The UI writes to or corrupts any CLI-owned file (run-status.json, run-log.jsonl, queue.json, STATE.md, .git, criteria.json) — v1 is read-only.",
+      "verify": "CLI-owned files must be byte-identical (mtime+sha256) across a full poll cycle; any write handle / mutation / new file under .agentic-os/ -> FAIL (see C15)."
+    },
+    {
+      "id": "B4",
+      "statement": "Server binds 0.0.0.0 / any non-loopback interface, or serves without Host-header validation.",
+      "verify": "netstat/bound-sockaddr shows loopback-only; a bad-Host request is rejected -> else FAIL (see C1)."
+    },
+    {
+      "id": "B12",
+      "statement": "The slice is verified by reading code/JSON only, without re-captured screenshots judged against the frozen design direction (vision-verify).",
+      "verify": "A sign-off with no vision-verify verdict naming the viewed image files -> FAIL (see C12)."
+    },
+    {
+      "id": "B-scope",
+      "statement": "Product code (the UI app, tests, or fixtures) lands in the agent HOME repo (D:\\horil\\agent) instead of the TARGET (D:\\horil\\agentic-os); or an existing engine test (test_p0..p9) is edited/deleted; or criteria.json is modified by the maker.",
+      "verify": "`git -C D:\\horil\\agent status` shows only run evidence under goals/ (no ui/ product code); `git -C D:\\horil\\agentic-os` diff touches no tests/test_p*.py; criteria.json unchanged by the maker -> else FAIL."
+    }
+  ]
+}

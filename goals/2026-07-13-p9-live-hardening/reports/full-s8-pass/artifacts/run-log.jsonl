@@ -1,0 +1,7 @@
+{"ts": "2026-07-15T16:56:26", "event": "session_start", "session_id": "20260715165626-10232", "mode": "real", "goals_queued": 2, "iteration_budget": 6, "token_budget": 800000, "no_progress_threshold": 2}
+{"ts": "2026-07-15T16:56:26", "event": "goal_start", "goal": "g1", "max_iterations": 2}
+{"ts": "2026-07-15T16:56:26", "event": "iter_begin", "goal": "g1", "iter": 1, "session_id": "20260715165626-10232"}
+{"ts": "2026-07-15T16:57:16", "event": "iteration", "goal": "g1", "iter": 1, "agg_iter": 1, "tokens": 1895, "cum_tokens": 1895, "changed": true, "verdict": "success", "note": null}
+{"ts": "2026-07-15T16:57:16", "event": "land_gate", "goal": "g1", "decision": "land", "note": "evidence present -> clean landed success; undo pointer recorded (U33/B11)."}
+{"ts": "2026-07-15T16:57:16", "event": "goal_end", "goal": "g1", "state": "success", "iterations": 1, "tokens": 1895, "note": null, "undo_pointer": "c3cedcb76e2c67cfa4fcb4e218ac9589535b3b2d", "session_id": "20260715165626-10232"}
+{"ts": "2026-07-15T16:58:11", "event": "undo", "goal": "g2", "undone_state": "success", "restored_to": "5be63b548acecac77aed59671d3abae8c40f0495", "previous_head": "a6c86d71760bd88a7631be8ec36cb1706e3e8c2b", "forced": false, "note": "rollback of a landed change; HEAD reset to the recorded pre-change SHA (recoverable via git reflog)."}

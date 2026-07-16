@@ -1,0 +1,304 @@
+{
+  "iteration": 2,
+  "gate": "3-lens adversarial panel",
+  "verdicts": [
+    {
+      "lens": "craft-skeptic (second independent capture)",
+      "images_viewed": [
+        "home-live.png",
+        "home-live--1280.png",
+        "home-live--light.png",
+        "home-live--regressed.png",
+        "home-focus.png",
+        "home-crashed.png",
+        "home-live--reduced-motion.png",
+        "home-not-installed.png",
+        "R3-helm-home-live-run.png"
+      ],
+      "criteria": [
+        {
+          "id": "C12",
+          "verdict": "pass",
+          "evidence": "Re-ran `python ui/capture_screens.py --out ...verify-iter2-craft` (my own independent capture) -> 13/13 views captured OK (home-live 226707 B, home-live--light 198104 B, etc.). Read home-live.png / home-live--1280.png / home-live--light.png / home-live--regressed.png / home-focus.png / home-crashed.png / home-live--reduced-motion.png / home-not-installed.png and compared against references/R3-helm-home-live-run.png + the mock's frozen tokens. My home-live matches the C-Helm direction (nav rail + near-black canvas + truth rail, living loop w/ YOU ARE HERE, segmented 3/5 drop ring, token burn-down, rich skill cards). Every BV item in scope cleared (see banned_outcomes). Files named above."
+        }
+      ],
+      "banned_outcomes": [
+        {
+          "id": "BV9",
+          "triggered": false,
+          "evidence": "The iter-1 defect. On my fresh home-live--light.png, pixel-sampled the two prior failures: ACTIVE GOAL name 'g2' = (13,22,34) #0D1622 (--text) on white = 18.18:1 (was #fff white-on-white); done-node 'MAKER' label = (23,117,47) #17752F (--st-success light) on white = 5.80:1 (was #cfeed8 pale-green). Active command-deck row 18.18:1, muted 7.29:1, STAGE accent 5.43:1. `python docs/design/mocks/contrast-check.py` -> RESULT: ALL PASS, exit 0. tokens.css hex == design-direction Dark+Light tables verbatim. Dark theme still correct (name bright #E8F0F8, label green #43C46A)."
+        },
+        {
+          "id": "BV10",
+          "triggered": false,
+          "evidence": "home-live.png (1440) and home-live--1280.png both render one continuous near-black canvas + 70px left nav rail + 336px right truth rail (helm-grid 70px/1fr/336px), NOT a flat evenly-tiled card grid. At 1280 the layout reflows with no horizontal scroll / no overflow."
+        },
+        {
+          "id": "BV11",
+          "triggered": false,
+          "evidence": "home-live.png: no decorative particle field / ambient background graphic (only a very faint static radial glow behind the canvas, non-animated). Loop is drawn as the 4 labeled stages MAKER -> VERIFIER -> LAND-GATE -> WRITE-BACK with connectors; render.py:259 'maker -> verifier -> land-gate -> write-back'."
+        },
+        {
+          "id": "BV12",
+          "triggered": false,
+          "evidence": "home-live.png: 'YOU ARE HERE' label + downward marker sits over the VERIFIER node; current stage statically identifiable via accent border+glow + the run glyph (color+icon+label+position). home-crashed.png analogously shows 'CRASHED HERE'."
+        },
+        {
+          "id": "BV13",
+          "triggered": false,
+          "evidence": "home-live.png: accent teal ~#46C6E0 appears only on the active stage heading (STAGE VERIFIER sampled (60,169,192)), the live loop node border/glow, YOU-ARE-HERE marker, and data-viz ink (ring fill + burn-down/history sparklines, render.py:53/82/108). Status chips use the SEPARATE status palette, not accent: g2 RUNNING chip sampled (74,139,209)=st-run blue, goal-opus ACTIVE chip (50,164,82)=st-success green. Corner-panel borders are --line (faint), not accent. Placement identical to R3."
+        },
+        {
+          "id": "BV15",
+          "triggered": false,
+          "evidence": "Copy audit of home-live.png % panel + render.py:295: '100% shows only on a verifier-confirmed land-gate - a gameable anti-drift guardrail, not a correctness guarantee; no high-water lock, no fake fill'. home-not-installed % tile: 'Rubric-derived ... 100% only on a land-gate pass'. Gate is explicitly framed as a gameable anti-drift guardrail and explicitly denied as a correctness/security guarantee."
+        },
+        {
+          "id": "BV16",
+          "triggered": false,
+          "evidence": "home-focus.png: the autofocused REDUCE MOTION control shows a visible ring. Sampled 661 pixels of --focus cyan around the button, mean (133,207,227) ~ #8AD8EA (--focus dark), ratio vs --bg = 11.59:1 (>= 3:1). CSS provides :focus-visible + [data-focus-demo]:focus outline:2px solid var(--focus)."
+        }
+      ],
+      "regressions_found": [],
+      "overall": "PASS",
+      "notes": "Independent second (craft-skeptic) capture to screens/verify-iter2-craft; all 13 views captured cleanly (no flaky/failed capture). BV9 fix confirmed by LOOKING + pixel measurement: the two hardcoded non-token colors are now var(--text) (18.18:1) and var(--st-success) (5.80:1) on the light view, and they still render correctly in dark. Every in-scope craft BV (BV9-BV13, BV15, BV16) refutation attempt failed to break the artifact; C12 passes. Cross-checks used a pure-Python PNG decoder (PIL unavailable) to distinguish accent (teal) from st-run/st-success and to measure contrast/focus-ring luminance directly from my own captures rather than the maker's PNGs. No regression seen across dark home-live, regressed, crashed, focus, reduced-motion, and not-installed states. Note: criteria C1-C11/C13/C15 and banned B3/B4/B12/B-scope/BV1-BV8/BV14 are outside this lens's assignment (fixture/code lenses); not re-graded here."
+    },
+    {
+      "lens": "VISION + BV9-FIX (iteration 2)",
+      "images_viewed": [
+        "home-live--light.png",
+        "home-live.png",
+        "R3-helm-home-live-run.png",
+        "home-live--regressed.png",
+        "home-live--reduced-motion.png",
+        "home-focus.png",
+        "home-live--secret-fixture.png",
+        "home-stale.png",
+        "home-torn-read.png",
+        "home-crashed.png",
+        "home-live--1280.png",
+        "home-not-installed.png",
+        "home-first-run.png",
+        "home-loading.png",
+        "home-live_GRAY.png (grayscale derived from home-live.png)",
+        "L_activegoal.png (3x crop of home-live--light active-goal panel)",
+        "L_makernode.png (3x crop of home-live--light MAKER done-node)",
+        "L_cmddeck.png (3x crop of home-live--light command deck)",
+        "focus_ring.png (4x crop of home-focus REDUCE MOTION control)"
+      ],
+      "criteria": [
+        {
+          "id": "C12",
+          "verdict": "pass",
+          "evidence": "Re-ran python ui/capture_screens.py --out .../verify-iter2-vision -> 13/13 views captured (fresh, 03:45). Read every PNG + references/R3-helm-home-live-run.png. Dark home-live matches R3: continuous near-black canvas + nav rail + truth rail, living loop maker->verifier->land-gate->write-back with YOU-ARE-HERE on VERIFIER, segmented 3/5 ring with downward sparkline + '▼ dropped 4/5 → 3/5', token burn-down vs cap, rich skill cards. BV9 (the sole iter-1 defect) CLEARED — see BV9. No BV item triggered."
+        },
+        {
+          "id": "C4",
+          "verdict": "pass",
+          "evidence": "home-live--regressed.png + home-live.png: segmented ring un-fill at 3/5 (N/M denominator), downward sparkline, '▼ dropped 4/5 → 3/5' annotation, 'still failing: C7 · C10' named list; no 100% shown; copy: '100% shows only on a verifier-confirmed land-gate ... no high-water lock, no fake fill'. Visible clauses satisfied."
+        },
+        {
+          "id": "C6",
+          "verdict": "pass",
+          "evidence": "home-live_GRAY.png (luminance-only render): every status chip retains its text label + glyph; LIFECYCLE KEY legend enumerates 9 tokens (RUNNING/SUCCESS/ABORTED/STOPPED/DECLINED/FLAGGED/HELD/NO-PROGRESS/QUEUED) each as glyph+text. State is not conveyed by color alone."
+        },
+        {
+          "id": "C11",
+          "verdict": "pass",
+          "evidence": "home-live.png skills rail: goal-opus v0.6.0 (SKILL/2 AGENTS/1 TOOL, PROJECT, WRITES-FILES/RUNS-CODE, ✓ ACTIVE, FIRED THIS ITER, standing ctx 12.4k tok, source skills-dir); prd v1.0 (DOCS-ONLY, V1.0→V1.1, △ UPDATE); goal-maker/goal-verifier ◐ ENABLED with components+permissions. Rich cards, not a bare list."
+        },
+        {
+          "id": "C13",
+          "verdict": "pass",
+          "evidence": "home-live.png: all four mechanics without the CLI — skills rail, TOKENS BURN-DOWN (CAP 200.0k, used 128.4k/200.0k·64%, this iteration 18.2k, at current rate ~3 iters left), command deck goals+lifecycle+queue, % ring. Token meter is always-on/passive in the truth rail, not behind a tab/command."
+        }
+      ],
+      "banned_outcomes": [
+        {
+          "id": "BV1",
+          "triggered": false,
+          "evidence": "home-stale.png: prominent '⬣ STALE · POSSIBLY DEAD · 5M' badge (icon+text+elapsed) + header LINK·STALE / RUNNER·DEAD? + red dot; 'updated 5m ago · stale at 30s → possibly dead'. Not shown as live."
+        },
+        {
+          "id": "BV2",
+          "triggered": false,
+          "evidence": "home-live.png/regressed: ring carries N/M (3/5) denominator, downward drop annotation, no 100% without land-gate; copy states no high-water lock / no fake fill. Provenance+fake-fill temporal clauses are C4/L1 (passed)."
+        },
+        {
+          "id": "BV3",
+          "triggered": false,
+          "evidence": "home-live_GRAY.png grayscale: all status tokens legible via glyph+text after color removal; lifecycle key shows 9 distinct glyph+label tokens."
+        },
+        {
+          "id": "BV4",
+          "triggered": false,
+          "evidence": "home-live--reduced-motion.png: identical static frame with color+icon state fallbacks (YOU-ARE-HERE marker, status chips) and an in-app REDUCE MOTION toggle visible; no ambient/idle motion signifier."
+        },
+        {
+          "id": "BV5",
+          "triggered": false,
+          "evidence": "home-live.png skills cards carry version + scope + component tags + permission tags + enabled/active state + fired + standing cost + update-available. Not a name-only list."
+        },
+        {
+          "id": "BV6",
+          "triggered": false,
+          "evidence": "home-torn-read.png: full last-known-good dashboard rendered + '⟳ RECOVERING · LAST-KNOWN-GOOD' badge. Not blank/crash/'no run'."
+        },
+        {
+          "id": "BV7",
+          "triggered": false,
+          "evidence": "home-live--secret-fixture.png: frame identical to home-live; no api_key/password/secret value string visible anywhere in the rendered frame."
+        },
+        {
+          "id": "BV8",
+          "triggered": false,
+          "evidence": "home-live.png: always-on token meter (cap/used/this-iter/forecast) in truth rail; all four mechanics visible without leaving for the CLI; U1 ships no run-log panel so no whole-file dump."
+        },
+        {
+          "id": "BV9",
+          "triggered": false,
+          "evidence": "PRIMARY FIX CONFIRMED. home-live--light.png (+ 3x crops L_activegoal/L_makernode/L_cmddeck): active goal name 'g2' = dark-navy #0D1622 (was white-on-white); '✓ MAKER' done-label = dark-green #17752F (was pale #cfeed8) — both legible on #FFFFFF surface. app.css line 101 uses var(--text), line 58 uses var(--st-success). contrast-check.py exits 0 (all tokens both themes clear 4.5:1); tokens.css matches design-direction hex tables verbatim."
+        },
+        {
+          "id": "BV10",
+          "triggered": false,
+          "evidence": "home-live.png (1440) + home-live--1280.png: one continuous near-black canvas + nav rail + truth rail at both widths; no flat tiled card-grid; no horizontal scroll at 1280."
+        },
+        {
+          "id": "BV11",
+          "triggered": false,
+          "evidence": "home-live.png: loop drawn as 4 labeled stages maker→verifier→land-gate→write-back with a return arc; only a subtle near-black canvas vignette, no decorative particle field / ambient background graphic."
+        },
+        {
+          "id": "BV12",
+          "triggered": false,
+          "evidence": "home-live.png: 'YOU ARE HERE ▼' marker sits on the VERIFIER node; current stage identifiable statically by color+icon+label+position from a single frame (home-crashed.png swaps to 'CRASHED HERE' equivalently)."
+        },
+        {
+          "id": "BV13",
+          "triggered": false,
+          "evidence": "home-live.png: accent teal-cyan confined to the live VERIFIER node + current STAGE value + live moving sparklines (%/token) + brand mark/active-nav — matching the frozen R3 reference; idle loop nodes, skill cards, idle panels use status/hairline colors, not accent."
+        },
+        {
+          "id": "BV14",
+          "triggered": false,
+          "evidence": "home-live--regressed.png: segmented un-fill + downward sparkline + '▼ dropped 4/5 → 3/5' + named failing 'C7 · C10'. Non-monotonicity is visible; not a one-way fill."
+        },
+        {
+          "id": "BV15",
+          "triggered": false,
+          "evidence": "home-live.png % panel copy: '100% shows only on a verifier-confirmed land-gate — a gameable anti-drift guardrail, not a correctness guarantee'. Not framed as a correctness/security guarantee. not-installed copy also says Mission Control 'never writes to it'."
+        },
+        {
+          "id": "BV16",
+          "triggered": false,
+          "evidence": "home-focus.png + 4x focus_ring.png crop: focused REDUCE MOTION control shows a bright --focus (#8AD8EA) ring, clearly ≥3:1 on the dark ground; adjacent THEME control (unfocused) has no ring."
+        },
+        {
+          "id": "B3",
+          "triggered": false,
+          "evidence": "Outside vision lens; read-only mutation is C15 (passing per iter-1 tests). No contrary visual evidence; captures drove real /api/state poll cycles without altering CLI-owned files."
+        },
+        {
+          "id": "B4",
+          "triggered": false,
+          "evidence": "Outside vision lens; loopback bind + Host validation is C1 (passing). capture_screens boots server host='127.0.0.1' port=0 loopback-only. No contrary evidence."
+        },
+        {
+          "id": "B12",
+          "triggered": false,
+          "evidence": "This verification IS vision-verify: I re-captured all 13 views with the scripted harness and judged by LOOKING, naming every viewed image file. Not a code/JSON-only sign-off."
+        },
+        {
+          "id": "B-scope",
+          "triggered": false,
+          "evidence": "git -C D:/horil/agent status: only '?? goals/2026-07-16-u1-observatory/' (run evidence) — no ui/ product code in HOME; criteria.json is under goals/ evidence (unmodified). git -C D:/horil/agentic-os: product code (ui/, tests/test_u1.py, dash verb in cli/agentic_os.py) lives in TARGET; no tests/test_p*.py touched."
+        }
+      ],
+      "regressions_found": [],
+      "overall": "PASS",
+      "notes": "Iteration 2 clears the sole iter-1 defect (BV9) and nothing regressed. I re-ran the capture harness myself (13/13 fresh at 03:45), viewed every PNG + R3, and additionally: 3x-zoomed the two previously-broken light-theme elements, produced a luminance grayscale for BV3/C6, ran mocks/contrast-check.py (exit 0, all tokens both themes), and diffed ui/assets/tokens.css against the design-direction tables (verbatim match). The iter-1 white-on-white active-goal name and pale-green done-label are gone: app.css now uses var(--text) (line 101) and var(--st-success) (line 58); in home-live--light.png 'g2' renders dark-navy #0D1622 and '✓ MAKER' renders dark-green #17752F, both legible on the #FFFFFF surface (worst case is a lighter ground for dark text, so pure-white surface is the best case). Dark home-live matches R3 with no regression. All BV1-BV16 not triggered; B12 satisfied (vision-verify performed with named files); B-scope clean (product code in TARGET only, no engine tests touched, criteria.json unmodified). Verdict: C12 pass; overall PASS. All C-verdicts here are within my VISION+BV9 lens — the non-visual criteria (C1/C2/C3/C5/C7/C8/C9/C15) are covered by their fixture tests, not re-run under this lens."
+    },
+    {
+      "lens": "regression + security (code/probe, no screenshots)",
+      "images_viewed": [],
+      "criteria": [
+        {
+          "id": "C1",
+          "verdict": "pass",
+          "evidence": "Live probe on my own fixture: make_server binds sockaddr '127.0.0.1'; make_server(host='0.0.0.0') raises ValueError (refused). Host evil.example / evil.example:PORT / 127.0.0.1.evil.com / attacker.test -> 403; 127.0.0.1:PORT / localhost:PORT / [::1] -> 200. pytest -k 'loopback or host_header' passes (subset of 39 passed)."
+        },
+        {
+          "id": "C2",
+          "verdict": "pass",
+          "evidence": "Reader probe: primed LKG=3/5, overwrote run-status.json with '{\"schema\":1,\"state\":\"run' -> read() did NOT raise; torn flag=True, view=home-live, progress.passing=3 (LKG retained), render HTML contains '3/5' and NOT 'no run'. Fresh valid write recovers to 5/5. BV6 not triggered."
+        },
+        {
+          "id": "C3",
+          "verdict": "pass",
+          "evidence": "home-crashed fixture: reader ui_state='crashed' (not running/idle/empty), in_flight present, rendered HTML has crash-badge + 'CRASHED' + hexagon glyph. home-live fixture crashed=False. Distinct third state confirmed."
+        },
+        {
+          "id": "C4",
+          "verdict": "pass",
+          "evidence": "Reader probe: feed 4/5 then 3/5 -> passing=3 (no high-water lock), dropped=True, drop_note='▼ dropped 4/5 → 3/5'. 5/5 w/o land_gate -> pct=100 landed=False; after appending land_gate decision=land -> landed=True. self_score=1.0/self_assessment=0.99 ignored -> 2/4 renders pct=50 (rubric-derived)."
+        },
+        {
+          "id": "C9",
+          "verdict": "pass",
+          "evidence": "Planted MY OWN secret api_key=REGRESS_ME_7 + password: REGRESS_PW_8 into STATE.md + run-log.jsonl + run-status.json (abort_reason + goal refused_reason); confirmed present in sources. Live server: neither value appears in /api/state JSON nor served HTML. Path-traversal probe (/../STATE.md, /%2e%2e/STATE.md, /.agentic-os/run-status.json, /assets/../../STATE.md, etc.) all 404 with no leak; no static-file route exists. BV7 not triggered."
+        },
+        {
+          "id": "C15",
+          "verdict": "pass",
+          "evidence": "Snapshotted sha256+mtime_ns of all CLI-owned files, booted real server, drove 12 requests (6x /api/state + 6x /) plus reader read-cycles: before==after (byte+mtime identical), no new .agentic-os/ file (n=4 stable), observed-series lives outside .agentic-os/. B3 not triggered."
+        },
+        {
+          "id": "C12",
+          "verdict": "not_in_scope",
+          "evidence": "Vision-verify criterion (re-capture + LOOK) belongs to the parallel visual lens; this is the code/security lens (images_viewed=[]). Code-side prerequisites of the iter-1 BV9 fix are all met: app.css:101 .qrow.active .qnm -> var(--text); app.css:58 .lnode.done .lname -> var(--st-success); both selectors match live DOM classes; contrast-check ALL PASS; tokens clear WCAG in light (text 15.31:1, st-success 4.88:1). Pixel-level confirmation on home-live--light is the visual lens's call."
+        }
+      ],
+      "banned_outcomes": [
+        {
+          "id": "BV6",
+          "triggered": false,
+          "evidence": "Torn read renders last-known-good 3/5 (view=home-live), no 'no run'/blank/crash; recovers on next valid write. See C2 probe."
+        },
+        {
+          "id": "BV7",
+          "triggered": false,
+          "evidence": "Own planted secret (REGRESS_ME_7/REGRESS_PW_8) absent from /api/state and served HTML; reader re-redacts independently. No traversal leak. See C9 probe."
+        },
+        {
+          "id": "BV9",
+          "triggered": false,
+          "evidence": "CODE/TOKEN side clean: contrast-check.py exit 0 ALL PASS (both themes); tokens.css hex matches design-direction Dark+Light tables verbatim; hardcode-guard finds 0 raw text colors across 57 color: decls; the 2 iter-1 offenders now var(). Only #fff in served HTML is --surface:#FFFFFF light panel BACKGROUND token (not text). Pixel-level BV9 confirmation is the visual lens's remit."
+        },
+        {
+          "id": "B3",
+          "triggered": false,
+          "evidence": "All CLI-owned files byte+mtime identical across 12 server requests; no new .agentic-os/ file; UI observed-series written outside .agentic-os/. See C15."
+        },
+        {
+          "id": "B4",
+          "triggered": false,
+          "evidence": "Bound sockaddr 127.0.0.1 only; make_server(host='0.0.0.0') raises ValueError; Host-header validated on every request (bad Host -> 403). See C1."
+        },
+        {
+          "id": "B12",
+          "triggered": false,
+          "evidence": "Not determinable/triggered from this lens alone: this is the code/security lens by design (images_viewed=[]); the iteration's vision lens (C12) performs the re-captured screenshot judgement. B12 triggers only if the overall sign-off ships without any vision-verify verdict, which is out of this lens's control."
+        },
+        {
+          "id": "B-scope",
+          "triggered": false,
+          "evidence": "git -C D:/horil/agent status: only untracked goals/2026-07-16-u1-observatory/ (run evidence); no ui/ product code tracked in HOME. git -C D:/horil/agentic-os: only cli/agentic_os.py modified (+61/-1, additive dash verb) plus untracked ui/ and tests/test_u1.py; NO tests/test_p*.py edited/deleted. criteria.json un-tampered (C12 still honestly marked status:'failing' from iter-1)."
+        }
+      ],
+      "regressions_found": [],
+      "overall": "PASS",
+      "notes": "Iter-2 change is minimal and complete: 2 hardcoded text colors -> tokens (app.css:58 var(--st-success), app.css:101 var(--text)) + one durable guard test. No over-engineering (guard is a small regex test, not scaffolding); no under-implementation (crash/torn/stale/progress/empty states all still present and probed live). U1 suite: 39 passed (incl. new test_contrast_hardcode_* x2). contrast-check.py exit 0 ALL PASS. Independently verified the hardcode guard is REAL: its regex (?<![-\\\\w])color\\\\s*:\\\\s* flags both #fff and 'white' on a POISONED copy of app.css in a tempdir while ignoring background-color:#000; real app.css untouched, 0 offenders. tokens.css hex diff vs design-direction tables = exact match, both themes. Server exposes only /, /api/state, /healthz, 404 (no static-file route) -> no directory-traversal secret leak. One engine-suite issue: tests/test_p0.py::test_git_precondition ERRORs at setup (fixture 'base' not found) -- PRE-EXISTING and unrelated: no conftest.py exists anywhere in the repo, 'base' is defined nowhere, and the only tracked target change is the additive dash verb; adding a verb cannot remove a fixture. Not a U1-caused regression. All 12/13 iter-1-passing criteria remain passing; the iter-1 BV9 defect is fixed on the code/token side (pixel confirmation deferred to the vision lens)."
+    }
+  ]
+}

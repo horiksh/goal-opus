@@ -1,0 +1,63 @@
+{
+  "iteration": 1,
+  "criteria": [
+    {
+      "id": "CP1",
+      "verdict": "pass",
+      "evidence": "python cli/agentic_os.py {init,install,uninstall,upgrade} --help -> each exit=0 with 'usage: agentic-os <verb>' text naming the verb. `python cli/agentic_os.py frobnicate` -> exit=2, stderr: \"argument {init,install,uninstall,upgrade}: invalid choice: 'frobnicate' (choose from ...)\" (names the unknown verb).",
+      "refutation_attempted": "Tried an unknown verb to force a silent-success/exit-0 or a message that omits the offending verb; got non-zero exit and the verb named verbatim. Confirmed each --help names its own verb, not just a generic banner."
+    },
+    {
+      "id": "CP2",
+      "verdict": "pass",
+      "evidence": "`pwsh -File bin/agentic-os.ps1 --help` exit=0 and `bash bin/agentic-os.sh --help` exit=0 - both print the identical top-level help listing the same four verbs {init,install,uninstall,upgrade}. `grep -rnE 'D:\\\\|C:\\Users|/c/Users' . --exclude-dir=.git --exclude-dir=docs --exclude-dir=tests` -> no matches (exit 1). Broader grep over bin/cli/payload/README for any drive-letter or /c/Users path -> no matches. Manifest paths are all relative; seeded STATE.md contains no absolute path.",
+      "refutation_attempted": "Searched not just the two wrappers but all source (cli, payload, README, .gitignore) for any absolute path, and inspected an emitted manifest.json + seeded STATE.md for baked-in absolute paths - none found; wrappers derive root from $PSScriptRoot / BASH_SOURCE."
+    },
+    {
+      "id": "CP3",
+      "verdict": "pass",
+      "evidence": "Fresh NON-git temp dir + `init` -> exit=1, message 'ERROR: target is not a git repository ... A git repo is required ... Nothing was installed.', and `.claude/` absent. Then `git init` + `init` again -> exit=0, `.claude/skills/goal-opus/SKILL.md` present.",
+      "refutation_attempted": "Verified it creates NOTHING on refusal (no .claude/ payload left behind) - not just a non-zero exit. Then confirmed it genuinely proceeds once the dir is a git worktree."
+    },
+    {
+      "id": "CP4",
+      "verdict": "pass",
+      "evidence": "Fresh git target + `init` (default): present .claude/skills/goal-opus/SKILL.md, .claude/agents/goal-maker.md + goal-verifier.md, tools/rubric_check.py, STATE.md with '<!-- agentic-os:schema-version=1 -->'. `python <target>/tools/rubric_check.py <valid sample>` -> 'OK ... is a valid rubric', exit=0 (also exit 0 on the locked criteria.json). Skill dir junction: os.path.isjunction=True, PowerShell LinkType=Junction, `fsutil reparsepoint query` exit 0.",
+      "refutation_attempted": "Confirmed the junction via THREE independent methods (os.path.isjunction, Get-Item LinkType, fsutil). Fed rubric_check a valid sample AND the real locked rubric to ensure it isn't a no-op that always exits 0 - it correctly rejected an invalid sample (missing banned_outcomes[].verify) with exit 1 first."
+    },
+    {
+      "id": "CP5",
+      "verdict": "pass",
+      "evidence": "`AGENTIC_OS_NO_JUNCTION=1 python cli/agentic_os.py init <target>` -> exit=0, output 'skill: .claude/skills/goal-opus [copy]' + warn 'AGENTIC_OS_NO_JUNCTION set; used copy fallback'. Skill dir is NOT a reparse point (fsutil non-zero, isjunction=False, isdir=True, LinkType none). `diff -r payload/.claude/skills/goal-opus <target>/.claude/skills/goal-opus` -> identical; SKILL.md sha256 matches (890d2c33...); 3 files present.",
+      "refutation_attempted": "Tried to catch a broken/empty/stub fallback: recursive diff against source, sha256 of SKILL.md, and file count - copy is content-complete and a real directory, not a dangling link. Exit was 0, not a hard error."
+    },
+    {
+      "id": "CP6",
+      "verdict": "pass",
+      "evidence": "Fresh git target with committed KEEP.txt; snapshot recorded. `init` -> framework present. `uninstall` -> exit=0, 'Uninstalled cleanly ... no framework files or dangling junctions remain'. Post: .claude/, tools/rubric_check.py, STATE.md, .agentic-os all gone; os.walk found ZERO junctions; target listing = ['.git','KEEP.txt']; KEEP.txt sha256 unchanged (ad906a54...); `git status --porcelain` empty; file set == pre-init. Repeated for the copy-install path -> also clean. Uninstall on a non-installed dir -> exit 1 'Nothing to uninstall'.",
+      "refutation_attempted": "Ran the round-trip for BOTH junction and copy installs, walked the entire tree for dangling reparse points, hashed the user sentinel, and diffed the full file listing against the pre-init snapshot. Also confirmed junction removal (os.rmdir) did NOT delete the canonical payload source (source intact after all cycles)."
+    },
+    {
+      "id": "CP7",
+      "verdict": "pass",
+      "evidence": "Installed target; edited STATE.md to schema-version=0, deleted the '## Verified facts' section, inserted 'LESSON-SENTINEL-P0'. `upgrade` -> 'schema-version: 0 -> 1', 'migrated: restored section: Verified facts'. After: marker '<!-- agentic-os:schema-version=1 -->', '## Verified facts' header present again, and 'LESSON-SENTINEL-P0' still present verbatim (grep line 27).",
+      "refutation_attempted": "Deleted a required section AND injected a sentinel memory line to detect data loss / overwrite; the sentinel survived byte-for-byte and the missing section was appended (not by wiping/rewriting the file). Verified the version marker actually changed and wasn't left stale."
+    },
+    {
+      "id": "CP8",
+      "verdict": "pass",
+      "evidence": "`init <target> --dry-run` -> exit=0, prints 'Preflight - toolchain check:  git: available (git version 2.53.0...)  python: available (Python 3.13.14)' and 'Note: scaffolded .claude/agents/ register with Claude Code only at SESSION START. Start a FRESH Claude Code session ...'; '.claude/' NOT created (no changes). `--preflight` alias behaves identically. docs/INSTALL.md has '## User-level vs project-level config precedence' stating 'Project-level `.claude/` overrides user-level `~/.claude/`' (README also states it).",
+      "refutation_attempted": "Confirmed dry-run/preflight reports both tools AND the fresh-session warning AND made zero filesystem changes (checked .claude absent after). Grepped both shipped docs to confirm the precedence rule is a stated section, not an incidental phrase."
+    }
+  ],
+  "banned_outcomes": [
+    { "id": "BP1", "triggered": false, "evidence": "`git -C D:\\horil\\agent status --porcelain` -> only `?? goals/2026-07-12-p0-bootstrap-install/` (the run-evidence folder). No agentic-os product source (CLI, bin wrappers, payload) tracked or untracked in the home. Product lives in a SEPARATE git repo D:/horil/agentic-os (distinct rev-parse toplevel). The only 'agentic-os' matches in the home's tracked files are pre-existing prds/2026-07-09-agentic-os/ PRD documents (prose), not code/build artifacts." },
+    { "id": "BP2", "triggered": false, "evidence": "Per CP6: post-uninstall the target retained only .git and KEEP.txt; zero managed framework files, zero dangling reparse points (os.walk), KEEP.txt sha256 unchanged; verified for both junction and copy installs. Uninstall's own residue self-check passed (exit 0)." },
+    { "id": "BP3", "triggered": false, "evidence": "Per CP5: forced-fallback init exited 0 and installed a real non-junction directory whose contents are recursively identical to the framework source (diff -r clean, SKILL.md hash match, 3 files). No hard-error, no empty/dangling stub." },
+    { "id": "BP4", "triggered": false, "evidence": "grep -rniE over docs+code+payload: every Default-FAIL/gate mention is framed as an 'anti-drift guardrail' and explicitly states 'NOT a security or correctness guarantee ... gameable and must never be relied on as a safety boundary' (README.md:70-74, docs/INSTALL.md:124-131, payload/STATE.template.md:9-11). Search for positive-guarantee framing ('gate guarantees/ensures/proves security/correctness') -> none." },
+    { "id": "BP5", "triggered": false, "evidence": "Per CP7: after `upgrade`, the sentinel memory line 'LESSON-SENTINEL-P0' survived verbatim and pre-existing sections were preserved; migration only appended the missing section and bumped the marker (migrate_state_text is add-only)." },
+    { "id": "BP6", "triggered": false, "evidence": "criteria.json top-level status='in_progress'; all eight criteria status='failing' with evidence=null; `grep -c '\"status\": \"success\"'` = 0. The file shows as untracked with no maker-authored status/evidence flips. No self-declared success. (PROGRESS.md / maker report not read, per instructions.)" }
+  ],
+  "overall": "PASS",
+  "diff_for_maker": []
+}

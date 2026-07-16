@@ -149,6 +149,14 @@ RETURN EXACTLY: { "missing_categories": [], "unsourced_claims": [],
   big R1/R2 workflows tripped the limit, single-agent R3 (untold reqs) and R4 (gap check) both
   ran cleanly — a lone subagent is a small draw. The account is rate/burst-limited, not hard-
   blocked; the main loop keeps working throughout. Prefer single `Agent` spawns for R3/R4.
+- **[2026-07-09] The deep-research synthesize agent can HARD-THROW, not just return null.** A large
+  confirmed-claim set makes the final `synthesize` `agent({schema})` call exceed its StructuredOutput
+  retry cap (5) and THROW — which propagates past the script's own `if(!report){…salvage…}` guard and
+  fails the whole workflow AFTER a clean 75-vote verify. Fix: resume with the synthesize call wrapped
+  in try/catch (`let report=null; try{report=await agent(…)}catch(e){log(…)}`) so the built-in salvage
+  return fires; the verify phase replays from cache for free. Also refined: the rolling account limit
+  needs REAL IDLE HOURS to clear, not just the reset timestamp to pass (three post-reset resumes
+  re-tripped within ~1–2h; the clean full-verify resume ran ~5h out). Extends the 2026-07-07 entry.
 
 ## Anti-patterns (do NOT do)
 
@@ -174,9 +182,43 @@ RETURN EXACTLY: { "missing_categories": [], "unsourced_claims": [],
   a Banned Outcome (silent $0.00 → B1); (c) an R1↔R3/R4 contradiction is caught and resolved (the
   Windows-no-sandbox vs "84% fewer prompts" O1 catch); (d) v1 is right-sized below the stated
   everything-scope. 26 untold requirements, 9 banned outcomes, ~30 sources (18 verified).
+- **[2026-07-09] `2026-07-09-agentic-os`** (portable, Claude-Code-native agentic-OS framework; solo
+  operator; Windows v1; runnable orchestration layer). First real `/deep-prd` since the 07-09 reset;
+  deep mode. 5 stated / 36 untold requirements (U1–U36), 11 banned outcomes, 12 seeded criteria
+  (`rubric_check` PASS). R1 fully verified (22/25); R2 salvaged (12 verified + 13 reported —
+  limit-truncated). **R4 earned its keep**: it caught that the product's OWN control loop (the
+  orchestration layer itself) had NO research behind it — only its sub-parts did — plus `[REPORTED]`-
+  only confidence clusters and 7 internal contradictions; all folded back (§4d design-flag, confidence
+  tiers, explicit v1 scope decisions). Regression checks for a re-run: (a) provenance header separates
+  verified/reported AND carries the single-vendor caveat; (b) the "which promised capability has NO
+  research" test catches the control-loop gap; (c) every requirement carries a **confidence tier**
+  ([V]/[R]/[A]/[D]); (d) a `[REPORTED]`-only load-bearing requirement is downgraded to
+  verify-before-build, never synthesized at parity with a verified one.
+- **[2026-07-15] `2026-07-15-agentic-os-ui`** (cutting-edge UI/UX for the now-DONE agentic-os engine; a
+  local loopback web "Mission Control" that OBSERVES/CONTROLS the engine's files). First **standard-depth**
+  eval-suite entry (mode: 3-agent fan-out + single-agent R4 + single-agent R5 gap-closer; NOT deep — the
+  observability-dashboard domain has dense documented analogs and it's a local solo tool). 7 stated / 43 untold
+  (U1–U43), 14 banned (B1–B14), 14 seeded criteria (C1–C14, `rubric_check` PASS). **R4 earned its keep a
+  2nd time** (same "which promised capability has NO research" test): the user's FIRST-named mechanic — SKILLS
+  INSTALLED — had zero research, and the two adjectives defining the product ("intuitive"/"visionary") were
+  unbacked (one best-practice, "calm restraint", actively CONTRADICTED "visionary"); the fix was a **targeted R5
+  re-research** (Claude Code /plugins schema, NN/g onboarding, LangGraph live-loop-graph, functional-motion
+  doctrine) that both closed the gap AND resolved the contradiction by REFRAME (visionary = functional-motion +
+  exception-surfacing + speed, not ornament) rather than more research. **NEW PATTERN — code-verify the producer:**
+  because the product observes an EXISTING codebase, a between-R3/R4-and-synthesis code pass verified R3's own
+  "verification backlog" against the live CLI (5 claims [A]→[V]; run-status.json written in-place non-atomically →
+  torn reads REAL; no lock/CAS → UI control is net-new coordination) and RESOLVED R4's lone architecture-impossible
+  flag (run-log.jsonl carries the per-iteration history run-status.json destroys). Regression checks for a re-run:
+  (a) provenance header states the standard-vs-deep depth CHOICE + why; (b) the "no-research capability" test catches
+  the skills-installed gap; (c) an apparent R1↔research contradiction ("visionary" vs "calm restraint") is resolved by
+  reframe, not papered over; (d) the producer's data-model assumptions are code-verified (not shipped as [A]); (e) each
+  unanswered scope Q's [ASSUMPTION] is tied to a named downstream gate (U0 /design-direction), not just Risks; (f) every
+  UI phase is a vision-verify UI slice gated on a frozen /design-direction.
 
 ## Run log
 
 | date | slug | sources | untold reqs | outcome |
 |---|---|---|---|---|
 | 2026-07-07 | claude-usage-os | ~30 found / 18 verified | 26 | mode: deep — PRD + seed shipped; R2 verify infra-blocked (salvaged+tagged); project reset 2026-07-09 |
+| 2026-07-09 | agentic-os | R1 26 + R2 28 fetched / 22+12 verified claims | 36 | mode: deep — PRD + seed shipped (rubric_check PASS); R2 verify limit-truncated (salvaged+tagged); 4 rate-limit resumes + synthesize try/catch patch; R3/R4 single-agents; landed on PR #1 |
+| 2026-07-15 | agentic-os-ui | ~34 across R1/R2/R5 (heavy VERIFIED on security/a11y/honesty) + code-verified data model | 43 | mode: standard (3-agent + R4 + R5 gap-closer); PRD + seed shipped (rubric_check PASS); R4 caught skills-installed=0-research → R5 closed; producer code-verified; PRD+seed copied to target docs/; clean run, no rate-limit |

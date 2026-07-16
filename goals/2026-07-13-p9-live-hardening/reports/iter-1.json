@@ -1,0 +1,33 @@
+{
+  "iteration": 1,
+  "criteria": [
+    { "id": "LP1", "verdict": "pass",
+      "evidence": "(a) AST/paren scan: 11 subprocess.run, ALL text=True carry encoding='utf-8'+errors=; no Popen/check_output/os.popen. (b) Independent stub (curly quote U+2019 in fenced result) drove real RealRunner under cp932: exit 0, success, no UnicodeDecodeError/TypeError, report unwrapped files_changed=['z.txt']. Load-bearing: cp932 decode corrupts E2 80 99 (round-trip False) while utf-8 succeeds.",
+      "refutation_attempted": "Wrote own faithful stub, drove live path under cp932; searched for any un-encoded text subprocess (none); decoded raw bytes with box locale to prove the fix isn't a no-op." },
+    { "id": "LP2", "verdict": "pass",
+      "evidence": "Real-mode goal (stub creates out.txt): `git show <checkpoint> --stat` INCLUDES out.txt (committed, not untracked). undo -> exit 0, HEAD==base SHA, out.txt gone, no residue.",
+      "refutation_attempted": "Checked the product file wasn't merely left untracked (pre-P9 bug) and undo left no residue; HEAD returned exactly to pre-change SHA." },
+    { "id": "LP3", "verdict": "pass",
+      "evidence": "2 goals to completion: run-log goal_end g1==1,g2==1; queue.json consumed=={g1,g2}. Second `run`: goal_start stays 1 for both, no new goal_end.",
+      "refutation_attempted": "Re-invoked run on the drained queue; inspected run-log goal_start counts AND queue.json consumed flags directly." },
+    { "id": "LP4", "verdict": "pass",
+      "evidence": "Stub drops AGENT_STOP after call 2: first run state=stopped, g1 goal_end==1, g2 goal_start==0. Removed AGENT_STOP, `resume`: g2 goal_start==1, goal_end g2 success, g1 goal_start stays 1, final state=success. docs/ORCHESTRATOR.md 'Continue-after-halt (P9)' names `resume`.",
+      "refutation_attempted": "Confirmed resume was not a no-op (pre-P9 bug) and did not re-run g1; confirmed a shipped doc names the verb." },
+    { "id": "LP5", "verdict": "pass",
+      "evidence": "garbage output -> exit 1 'ERROR: no JSON object found in agent output'; empty output -> exit 1 'ERROR: claude produced no decodable output (empty stdout)...'. No NoneType/not iterable/Traceback/UnicodeDecodeError. Source: _invoke_claude guard L1307-1316 + _parse_last_json None-guard L1325-1327.",
+      "refutation_attempted": "Fed empty AND non-JSON-with-non-ASCII garbage through the real runner; grepped for a raw TypeError/UnicodeDecodeError stack trace -> clean routed OrchestratorError instead." },
+    { "id": "LP6", "verdict": "pass",
+      "evidence": "From target: test_p0 53/53, p1 82/82, p2 64/64, p3 64/64, p4 61/61, p8 30/30, p9 54/54 all PASS. Mock path unchanged: LP6 mock run exit 0, both mock goals success, cumulative_tokens==150, NO queue.json created on mock path.",
+      "refutation_attempted": "Ran every prior suite at established count; confirmed mock checkpoint stages no product paths (product_paths empty on mock) so mock behavior untouched." }
+  ],
+  "banned_outcomes": [
+    { "id": "BP1", "triggered": false, "evidence": "`git -C D:\\horil\\agent status --porcelain` only '?? goals/2026-07-13-p9-live-hardening/'; all product committed under D:/horil/agentic-os (f2c9308); target status clean." },
+    { "id": "BP2", "triggered": false, "evidence": "fake_claude_stub.py emits a real-shaped envelope (type/subtype/is_error/result[fenced]/usage{input,output,cache_*}/session_id/modelUsage/permission_denials/...) matching real_claude_envelope.json keys; report carries U+2019; maker turn creates a real product file. Verified cp932 corrupts it, utf-8 unwrap -> files_changed=['z.txt'], z.txt created." },
+    { "id": "BP3", "triggered": false, "evidence": "Prior suites at established counts; mock path unchanged (LP6 mock green; product_paths empty on mock checkpoint; no queue.json in mock run)." },
+    { "id": "BP4", "triggered": false, "evidence": "After a staged checkpoint, added a separate uncommitted USER_WIP.txt the maker never reported; undo -> exit 1 'NG - working tree has uncommitted USER changes ... ?? USER_WIP.txt ... (BP7: undo never blind-resets)'; file intact, HEAD not reset. Checkpoint staging is selective (reported files), not blind add -A." },
+    { "id": "BP5", "triggered": false, "evidence": "rubric_check OK/exit 0; goal status in_progress, all six criteria failing at grade time; no maker success flip." },
+    { "id": "BP6", "triggered": false, "evidence": "_claude_permission_flags returns [] unless AGENTIC_OS_DANGEROUSLY_SKIP_PERMISSIONS truthy (default off); docs frame the env gate as an anti-drift guardrail, not a security guarantee." }
+  ],
+  "overall": "PASS",
+  "diff_for_maker": []
+}

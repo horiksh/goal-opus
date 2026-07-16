@@ -1,0 +1,125 @@
+{
+  "goal": "agentic-os P8 (real-runner hardening): make the REAL runner work against live `claude -p --output-format json` - unwrap the result envelope and parse the agent's (markdown-fenced) report nested in `result`, count usage tokens from the envelope's input+output, add a run-start which(claude) preflight, and document the live-run permission opt-in. Deterministically verified against a captured REAL claude envelope; no regression to the mock path (P0-P4).",
+  "target": "D:\\horil\\agentic-os",
+  "created": "2026-07-13",
+  "max_iterations": 4,
+  "phase": "P8 (real-runner hardening) - follows PRD \u00a78 live-acceptance finding",
+  "status": "success",
+  "notes": "RESOLVED: verifier PASS iteration 1 (reports/iter-1.json); product committed at D:\\horil\\agentic-os 671c82a; tests test_p8.py 30/30, P0-P4 unchanged (53/82/64/64/61). Scope = the claude-turn adapter (_invoke_claude / _parse_last_json / _usage_tokens / RealRunner) + a run-start preflight + docs/tests ONLY. Do NOT touch the mock path, control loop, budgets, sentinels, undo/land-gate, observability. GROUND-TRUTH FIXTURE (real captured envelope): goals/2026-07-13-p8-real-runner-hardening/fixtures/real_claude_envelope.json - its `result` is markdown-fenced JSON; `usage` has input_tokens+output_tokens (no total_tokens). The claude binary for optional live re-capture / preflight tests: C:\\Users\\horil\\.local\\bin\\claude.exe (NOT on default PATH). Tests operate on throwaway repos under the scratchpad; pin interpreter (python/pwsh/bash).",
+  "criteria": [
+    {
+      "id": "HP1",
+      "statement": "Envelope->report unwrap: a pure function extracts the INNER agent report from a real `claude -p --output-format json` envelope whose `result` string is markdown-fenced JSON - returning the report (summary/files_changed/evidence/blockers), NOT the envelope.",
+      "verify": "Load the committed real-envelope fixture (a genuine capture). Call the target's unwrap function on it (or on the raw envelope text). Assert the returned dict has the INNER report keys (e.g. `files_changed`, `evidence`, `summary`) and NOT the envelope keys (`type`/`subtype`/`result`), i.e. the ```json fence and envelope were stripped. Prove it by python-invoking the function on the fixture and printing the extracted `files_changed`.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - unwrap returns inner report (files_changed=[greet.py]), not envelope; verified on a fresh independent capture too.",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json"
+        }
+      ]
+    },
+    {
+      "id": "HP2",
+      "statement": "Usage tokens from the envelope: a turn's token count is summed from the envelope's `usage` (input_tokens + output_tokens) - a positive number matching the fixture, not 0.",
+      "verify": "On the committed real-envelope fixture, call the target's usage-token extraction for that turn. Assert it returns input_tokens + output_tokens (> 0) from the envelope usage - NOT 0 and NOT a lookup of the absent `total_tokens`. Compare against the fixture's actual usage numbers.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - _usage_tokens=100=input(3)+output(97) on fixture, 45 on fresh capture; no total_tokens lookup.",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json"
+        }
+      ]
+    },
+    {
+      "id": "HP3",
+      "statement": "Run-start claude preflight: a real (non-mock) run with `claude` ABSENT from PATH refuses at run START, before journaling any iteration - leaving NO stale state=running/in_flight run-status.",
+      "verify": "In a fresh throwaway git target with a queued goal, run the real runner (no mock env) in an environment where `which(claude)` is None (claude is not on the default PATH). Assert: non-zero exit with a clear 'claude not found' message AND run-status.json is either absent OR NOT in state=running/in_flight (a clean refused/blocked state) - contrast the pre-fix behavior which left state=running in_flight={goal,iter}. Read exit code + run-status.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - claude-less real run exit 1 with clear message; run-status.json ABSENT (preflight before _control_loop).",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json"
+        }
+      ]
+    },
+    {
+      "id": "HP4",
+      "statement": "Least-privilege preserved + live-run permission documented (U23): `--dangerously-skip-permissions` is still passed ONLY when AGENTIC_OS_DANGEROUSLY_SKIP_PERMISSIONS is set (default off), and a shipped doc states a live run needs this opt-in (or a settings allowlist) for the maker to write files.",
+      "verify": "Inspect: `_claude_permission_flags` returns [] with the env unset and ['--dangerously-skip-permissions'] only with it set (default off, unchanged from P3). Assert a shipped doc (e.g. docs/LIVE-RUN.md, ORCHESTRATOR.md, or SAFE-AUTONOMY.md) states that live `run`s need the permission opt-in / a `.claude/settings*.json` allowlist for the headless maker to write. Read the code path + the doc.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - flag env-gated (default []); ORCHESTRATOR.md + SAFE-AUTONOMY.md document the live-run write opt-in/allowlist.",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json"
+        }
+      ]
+    },
+    {
+      "id": "HP5",
+      "statement": "No regression: all existing P0-P4 test suites still pass and the mock path is unaffected.",
+      "verify": "Run `python tests/test_p0.py && python tests/test_p1.py && python tests/test_p2.py && python tests/test_p3.py && python tests/test_p4.py` (and test_p8.py) from the TARGET. Assert ALL pass with their established counts (53/82/64/64/61) and test_p8 green. The mock runner behavior is byte-for-byte unchanged.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - p0/p1/p2/p3/p4 = 53/82/64/64/61 + p8 30/30 all pass; MockRunner never calls the new adapter.",
+      "history": [
+        {
+          "iteration": 1,
+          "flip": "failing->passing",
+          "evidence": "reports/iter-1.json"
+        }
+      ]
+    }
+  ],
+  "banned_outcomes": [
+    {
+      "id": "BP1",
+      "statement": "Product code or run evidence lands in the agent-home repo (B1: home != build target).",
+      "verify": "`git -C D:\\horil\\agent status --porcelain` shows only system/memory/evidence paths (goals/2026-07-13-p8-real-runner-hardening/, STATE.md, at most .claude/skills/goal-opus/SKILL.md). No agentic-os product source in the home; all product code under D:\\horil\\agentic-os.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - home status shows only the workdir; all product under the target."
+    },
+    {
+      "id": "BP2",
+      "statement": "The unwrap is verified against a HAND-BUILT fixture rather than a REAL captured `claude -p --output-format json` envelope.",
+      "verify": "The committed test fixture is a genuine capture: it carries the characteristic real envelope keys (session_id, total_cost_usd, duration_ms, modelUsage, usage.cache_creation_input_tokens/cache_read_input_tokens) AND a `result` that is markdown-fenced or otherwise non-bare - not a minimal hand-authored `{type,result}` stub. The verifier MAY re-capture its own real envelope (claude at C:\\Users\\horil\\.local\\bin\\claude.exe) and confirm the unwrap works on it too.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - committed fixture has real envelope keys + fenced result; a fresh independent capture matched the shape and unwrapped."
+    },
+    {
+      "id": "BP3",
+      "statement": "An existing P0-P4 test regressed, or the mock path behavior changed.",
+      "verify": "See HP5: every prior suite passes at its established count; the mock runner path is unchanged.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - all prior suites at established counts; mock path unchanged."
+    },
+    {
+      "id": "BP4",
+      "statement": "`--dangerously-skip-permissions` was made unconditional / passed by default (regressing P3 least-privilege).",
+      "verify": "See HP4: the flag is still env-gated (default off); the fix did not make it blind/unconditional.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - skip flag only from env-gated helper (default []); no unconditional occurrence."
+    },
+    {
+      "id": "BP5",
+      "statement": "The maker edited or deleted criteria.json, or declared the goal done itself.",
+      "verify": "criteria.json is byte-identical to the orchestrator-signed version except orchestrator-written status/history/evidence flips; the maker's report never sets status=success.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - criteria.json untracked/unflipped at grade time; no maker success flip."
+    },
+    {
+      "id": "BP6",
+      "statement": "Docs or code present the Default-FAIL rubric/gate as a security or correctness GUARANTEE (B5).",
+      "verify": "grep the target's shipped docs/code: every gate mention is framed as an anti-drift guardrail; no text claims it is a security/correctness boundary.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - gate framed as anti-drift guardrail, not a security/correctness guarantee, across docs+cli."
+    }
+  ]
+}

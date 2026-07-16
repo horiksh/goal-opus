@@ -1,0 +1,2 @@
+3083726 HEAD@{0}: commit: agentic-os checkpoint: goal g1 success (iterations=1, tokens=2051)
+6fa4f49 HEAD@{1}: commit (initial): base

@@ -1,0 +1,23 @@
+5be63b5 (HEAD -> master) agentic-os checkpoint: goal g1 success (iterations=1, tokens=1895)
+ .agentic-os/queue.json            | 19 ++++++++++++++++
+ .agentic-os/run-log.jsonl         |  6 +++++
+ .agentic-os/run-status.json       | 46 +++++++++++++++++++++++++++++++++++++++
+ .agentic-os/undo-log.json         | 14 ++++++++++++
+ .agentic-os/writeback-ledger.json | 11 ++++++++++
+ STATE.md                          |  1 +
+ alpha.txt                         |  1 +
+ goals/alpha-txt/PROGRESS.md       |  5 +++++
+ 8 files changed, 103 insertions(+)
+c3cedcb bootstrap: install agentic-os + rubrics
+ .agentic-os/manifest.json                          |  22 ++
+ .claude/agents/goal-maker.md                       |  71 +++++
+ .claude/agents/goal-verifier.md                    |  71 +++++
+ .claude/skills/goal-opus/SKILL.md                  | 295 +++++++++++++++++++++
+ .../goal-opus/templates/PROGRESS.template.md       |  11 +
+ .../goal-opus/templates/criteria.template.json     |  23 ++
+ STATE.md                                           |  43 +++
+ r1.json                                            |  23 ++
+ r2.json                                            |  23 ++
+ tools/rubric_check.py                              | 243 +++++++++++++++++
+ 10 files changed, 825 insertions(+)
+6b26d68 base

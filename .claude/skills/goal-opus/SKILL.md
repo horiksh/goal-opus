@@ -266,6 +266,28 @@ a reviewable diff. Do not prune inline during a goal run.
   the improvement loop's memory stops being about the loop. Every product-code goal
   declares a TARGET (see `## Scope rules`); the home keeps only system, memory, and run
   evidence.
+- [2026-07-13 · agentic-os-§8] Do not treat mock-green phases as "live-ready" / done. A deterministic
+  mock (the mandated `AGENTIC_OS_MOCK_RUNNER`-style test handle) verifies CONTROL FLOW, not that the
+  real dependency's actual output parses — its determinism HIDES the real tool's format/permission
+  surface. agentic-os P0–P4 were all 1-iteration green, yet §8's first live `claude -p` call proved
+  the real runner never unwrapped the CLI's result envelope (every real goal would abort). Rule: a
+  banned-outcome guarding that the real path EXISTS + is default is necessary but NOT sufficient;
+  require a LIVE acceptance run against the real tool's true output before declaring a product done.
+  (Full root-cause in STATE.md Lessons learned 2026-07-13.)
+- [2026-07-16 · u1-observatory] A UI slice passed its token-VALUES-only contrast script
+  (`contrast-check.py` exit 0) yet shipped INVISIBLE white-on-white text in the light theme (the
+  active goal's name) → root cause: two text colors were HARDCODED outside the token file, so a
+  checker that validates the token TABLE never saw them; the maker faithfully copied a dark-first
+  mock that itself carried the dark-only hardcodes (faithfulness to a reference ≠ second-theme
+  correctness) → fix: vision-verify (Reading the actual `home-live--light` capture) caught it; the
+  maker replaced both with theme tokens AND added a guard test that FAILS on any raw `#hex`/`rgb`
+  text `color:` outside the token file. RULE: for any themed UI slice, (1) pair every "validate the
+  DEFINITION" check (token table) with a "validate the RENDERED artifact" check (vision-verify +/or a
+  DOM contrast pass) and a cheap guard that BANS bypassing the definition (text colors MUST be
+  `var(--…)`); (2) the vision pass MUST include the second-theme (`--light`) capture, not just the
+  primary — the primary-theme frame can be perfect while the second theme has invisible text. This is
+  the vision-verify sibling of MOCK-VERIFIED≠LIVE-READY. (Full root-cause: home + target STATE.md
+  Lessons learned 2026-07-16.)
 
 ## Eval suite
 
@@ -282,6 +304,81 @@ a reviewable diff. Do not prune inline during a goal run.
   (5 criteria incl. the three lens fixtures under `fixtures/`, 3 banned outcomes).
   Passed in 1 iteration. The fixtures double as the lens's permanent regression set:
   after any future edit to the lens text, re-classify all three.
+- [2026-07-12] agentic-os-P0 — `goals/2026-07-12-p0-bootstrap-install/criteria.json`
+  (8 criteria CP1–CP8, 6 banned outcomes). FIRST real product build against a SEPARATE
+  TARGET (`D:\horil\agentic-os`) — exercised the home-vs-target split end-to-end (BP1
+  clean). Passed in 1 iteration. Regression trigger: after any change to the install
+  mechanic, re-run the install round-trip criteria (CP4 junction / CP5 copy-fallback /
+  CP6 uninstall-no-residue) on a fresh throwaway repo. Baseline: 1 iteration to all-pass.
+- [2026-07-12] agentic-os-P1 — `goals/2026-07-12-p1-orchestrator-control-loop/criteria.json`
+  (8 criteria QP1–QP8, 8 banned outcomes). Orchestrator control loop (§4d) built ON TOP of
+  P0 in the same TARGET. Passed in 1 iteration. First use of the mandated-mock-runner rubric
+  pattern (see STATE.md Lessons learned 2026-07-12): the deterministic `AGENTIC_OS_MOCK_RUNNER`
+  handle is the permanent test substrate + BP8 guards the real-default path. Regression trigger:
+  after any change to the control loop or budgets, re-run the mock-driven criteria (QP2/QP3/QP6/
+  QP7) on a throwaway repo. Baseline: 1 iteration to all-pass.
+- [2026-07-12] agentic-os-P2 — `goals/2026-07-12-p2-durable-memory-writeback/criteria.json`
+  (7 criteria RP1–RP7, 7 banned outcomes). Durable memory & write-back on top of P1: crash-durable
+  incremental journaling + idempotent resume + secret-scrub + export + size-warning. Passed in 1
+  iteration. Extended the mock substrate with `crash_after_iteration` (abrupt `os._exit`) so
+  crash/resume/idempotency are deterministically testable; the verifier crashed runs itself and
+  forced a double-resume to refute idempotency. Regression trigger: after any change to the
+  journal/resume/ledger path, re-run RP1/RP2/RP3 (crash + resume + re-resume no-op) on a throwaway
+  repo. Baseline: 1 iteration to all-pass.
+- [2026-07-12] agentic-os-P3 — `goals/2026-07-12-p3-safe-autonomy/criteria.json`
+  (5 criteria SP1–SP5, 7 banned outcomes). Safe autonomy on top of P2: real undo/rollback + land-gate
+  (catches a gamed evidence-less pass) + approve-before-land toggle + classifier-decline fallback +
+  least-privilege allowlists. Passed in 1 iteration. Extended the mock with a `gamed_pass` affordance;
+  the verifier landed/gamed/**dirtied**/undid throwaway repos itself — the sharp check is BP7 (undo on
+  a dirty user tree must REFUSE, not `git reset --hard` over user work). Regression trigger: after any
+  change to undo/land-gate/decline, re-run SP1 (undo restores HEAD) + SP2 (gamed pass flagged) + BP7
+  (dirty-tree undo refuses). Baseline: 1 iteration to all-pass.
+- [2026-07-13] agentic-os-P8 — `goals/2026-07-13-p8-real-runner-hardening/criteria.json`
+  (5 criteria HP1–HP5, 6 banned outcomes). Real-runner hardening: unwrap the live `claude -p
+  --output-format json` envelope + parse the markdown-fenced report, envelope-usage tokens, run-start
+  `which(claude)` preflight, live-run permission doc. Born from §8's live finding (mock-green hid the
+  broken adapter). Passed in 1 iteration. Grounded in a REAL captured `claude` envelope fixture (BP2:
+  fixture must be genuine, not hand-built — the verifier re-captured its own to confirm). Regression
+  trigger: after any change to the claude-turn adapter, re-run HP1 (unwrap inner report) + HP2
+  (envelope usage) on the real fixture + HP5 (P0–P4 no regression). Baseline: 1 iteration to all-pass.
+- [2026-07-13] agentic-os-P9 — `goals/2026-07-13-p9-live-hardening/criteria.json`
+  (6 criteria LP1–LP6, 6 banned outcomes). Live-hardening: fixed the 5 integration bugs the FULL live
+  §8 surfaced (UTF-8/cp932 on every subprocess; checkpoint stages product changes so undo reverts real
+  diffs; queue consumption; resume-after-halt; None-guard). Passed in 1 iteration. Introduced the
+  **faithful fake-`claude` stub** substrate (STATE.md Lessons learned 2026-07-13): a stub emitting the
+  real envelope shape + non-ASCII + a real created file, driving the REAL runner deterministically —
+  the verifier wrote its OWN to confirm. Regression trigger: after any real-runner/checkpoint/queue
+  change, re-run LP1 (non-ASCII decode) + LP2 (checkpoint stages + undo reverts) + BP4 (undo still
+  refuses over user work). Baseline: 1 iteration to all-pass.
+- [2026-07-12] agentic-os-P4 — `goals/2026-07-12-p4-observability-notification/criteria.json`
+  (4 criteria OP1–OP4, 7 banned outcomes). Observability & notification on top of P3: tailable
+  per-iteration run-status + at-a-glance `status` + push-notify hook (finish/block/budget/decline),
+  optional/non-fatal/local/secret-scrubbed. Passed in 1 iteration — COMPLETES the v1 core (P0–P4).
+  Test handle: `AGENTIC_OS_NOTIFY_CMD` sink; BP7 guards against a GUI dashboard (a UI slice needing
+  /design-direction). Regression trigger: after any change to notify/status, re-run OP3 (one notify
+  per terminal event, not per iteration) + OP4 (failing hook non-fatal + payload scrubbed). Baseline:
+  1 iteration to all-pass. NOTE: §8 final acceptance (the LIVE run) is a demo/acceptance test, not a
+  mock-graded phase — it is NOT in this eval suite because it is inherently non-deterministic.
+- [2026-07-16] agentic-os-U1 (read-only observatory) — `goals/2026-07-16-u1-observatory/criteria.json`
+  (13 criteria C1–C9,C11,C12,C13,C15; 20 banned outcomes incl. BV1–BV16 verbatim). **FIRST UI slice /
+  FIRST vision-verify E2E** — the permanent regression case for the vision-verify machinery: it proves
+  a BV violation actually GATES a run (iter-1 failed C12 on BV9 light-theme contrast; iter-2 fixed →
+  unanimous PASS) and the verifier judges by LOOKING (names viewed images). Passed in **2 iterations**
+  (first multi-iteration real goal — promotion-gate D2 item (2) satisfied). Deterministic: all criteria
+  are fixture- or capture-based (no live `claude`). Regression trigger: after any change to the reader
+  or `ui/assets/*`, re-run `python -m pytest tests/test_u1.py -q` (39) + `python ui/capture_screens.py`
+  and Read `home-live--light.png` (BV9 guard) + confirm the `contrast_hardcode` test still fails on a
+  poisoned copy. Baseline: 2 iterations to all-pass (BV9 light-theme). Baselines live in
+  `agentic-os/docs/design/baselines/` (13 views) — future UI slices regress against them.
+- [2026-07-16] u2-living-loop — `goals/2026-07-16-u2-living-loop/criteria.json`
+  (7 criteria — C4/C8/C10/U2-LOOP/U2-FR/C15/C12 — + BV1–BV16 folded verbatim + 6 process
+  guards BX1–BX6; target `D:\horil\agentic-os`). Passed in 1 iteration. The first
+  **vision-verify slice with REAL motion**: the regression case exercises the frozen
+  two-frame (before/after) temporal procedure end-to-end — the verifier judged the
+  motion-budget/fake-fill/ambient BVs (BV2/BV4/BV13) from `loop-stage-before/after` +
+  `ring-before/after` frame-pairs, not stills, and cleared all 16 BVs by LOOKING. Re-run
+  shape for any future UI slice that adds motion: capture frame-pairs, don't let a
+  temporal claim rest on a single still (BX5).
 
 ## Run log
 
@@ -293,3 +390,12 @@ a reviewable diff. Do not prune inline during a goal run.
 | 2026-07-07 | rubric-check | 1 | success (registered agents) |
 | 2026-07-08 | decision-ladder | 1 | success (D8 Goal 1) |
 | 2026-07-08 | retrieval-invariant | 1 | success (D8 Goal 3; lens + counter-guard live) |
+| 2026-07-12 | agentic-os-P0 | 1 | success (first real TARGET build; home-vs-target clean) |
+| 2026-07-12 | agentic-os-P1 | 1 | success (orchestrator §4d; mock-runner verify substrate) |
+| 2026-07-12 | agentic-os-P2 | 1 | success (durable journaling + idempotent resume; crash-tested) |
+| 2026-07-12 | agentic-os-P3 | 1 | success (undo/land-gate/decline; dirty-tree-undo refusal tested) |
+| 2026-07-12 | agentic-os-P4 | 1 | success (tailable status + push-notify; completes v1 core P0–P4) |
+| 2026-07-13 | agentic-os-P8 | 1 | success (real-runner hardening; born from the §8 live finding) |
+| 2026-07-13 | agentic-os-P9 | 1 | success (live-hardening: 5 §8 bugs fixed; faithful fake-claude stub) |
+| 2026-07-16 | agentic-os-U1 | 2 | success (first UI slice; vision-verify E2E-proven — BV9 gated iter-1; first multi-iteration goal) |
+| 2026-07-16 | u2-living-loop | 1 | success (UI slice U2; vision-verify + frame-pairs) |

@@ -1,0 +1,119 @@
+{
+  "goal": "agentic-os P0 (Bootstrap & install): ship init/install/uninstall/upgrade with git-precondition, dual-shell scripts, schema-version + preflight, and an NTFS-junction-with-copy-fallback install mechanic, such that a fresh Windows clone bootstraps the self-contained framework into a TARGET repo and round-trips install->uninstall with no residue.",
+  "target": "D:\\horil\\agentic-os",
+  "created": "2026-07-12",
+  "max_iterations": 5,
+  "phase": "P0 (Bootstrap & install) of prds/2026-07-09-agentic-os/PRD.md",
+  "status": "success",
+  "notes": "Scope is strictly P0. All product code lands in TARGET (D:\\horil\\agentic-os); the agent home receives only run evidence + memory. Install/round-trip tests MUST operate on throwaway repos under a temp/scratchpad dir and clean up after themselves. Verify commands run on Windows; pin the working interpreter (python / pwsh / bash). RESOLVED: verifier PASS iteration 1 (reports/iter-1.json); product committed at D:\\horil\\agentic-os 9aeb876.",
+  "criteria": [
+    {
+      "id": "CP1",
+      "statement": "The verb surface exists: init/install/uninstall/upgrade each exit 0 with usage text on --help, and an unknown verb exits non-zero with an error naming it.",
+      "verify": "From the TARGET repo, run the CLI for each of `init --help`, `install --help`, `uninstall --help`, `upgrade --help` -> assert exit 0 AND stdout/stderr contains usage text naming that verb. Then run `<cli> frobnicate` (an unknown verb) -> assert non-zero exit AND the message names the unknown verb. Record the exact commands + exit codes.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - each verb --help exit 0 naming the verb; `frobnicate` exit 2 with 'invalid choice: frobnicate'.",
+      "history": [{ "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json (verifier re-ran; unknown-verb non-zero confirmed)" }]
+    },
+    {
+      "id": "CP2",
+      "statement": "Dual-shell parity (U27): the CLI is invokable from BOTH PowerShell and Git-Bash with an equivalent verb list, and no emitted script hardcodes a machine-absolute path.",
+      "verify": "Run the PowerShell entrypoint (`pwsh -File <cli>.ps1 --help` or equivalent) AND the Git-Bash entrypoint (`bash <cli>.sh --help` or equivalent); assert BOTH exit 0 and both list the same four lifecycle verbs. Then grep every emitted/installed script for hardcoded absolute paths (`grep -rnE 'D:\\\\\\\\|C:\\\\\\\\Users|/c/Users' <target>` excluding docs/tests) -> assert zero matches (paths must derive from script location or args).",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - pwsh + bash wrappers both exit 0 with identical four-verb list; grep for absolute paths over bin/cli/payload = zero.",
+      "history": [{ "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json (wrappers derive root from $PSScriptRoot / BASH_SOURCE; manifest paths relative)" }]
+    },
+    {
+      "id": "CP3",
+      "statement": "Git-precondition (U2): `init` in a non-git directory refuses to scaffold (or offers git init) instead of proceeding blindly; in a git directory it proceeds.",
+      "verify": "Create a throwaway NON-git temp dir; run `init` in it -> assert it does NOT create a .claude/ payload AND exits non-zero (or clearly prompts) with a message mentioning git. Then `git init` that dir and run `init` again -> assert it now proceeds (payload appears, exit 0). Assert both via exit code + presence/absence of .claude/.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - non-git init exit 1, message mentions git, no .claude/ left behind; after git init it proceeds exit 0 with payload present.",
+      "history": [{ "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json (verified nothing created on refusal)" }]
+    },
+    {
+      "id": "CP4",
+      "statement": "Bootstrap scaffolds the framework (U1) into a fresh git target via the junction path (U24): .claude/ payload, a seeded STATE.md carrying a schema-version field, and a working rubric_check are installed; self-editing skill dirs are NTFS junctions where junctions are available.",
+      "verify": "In a fresh git throwaway target, run `init`; assert present: `.claude/skills/goal-opus/SKILL.md`, at least one `.claude/agents/*.md`, `tools/rubric_check.py`, and a `STATE.md` containing a schema-version field (grep -iE 'schema[_-]?version'). Assert `python <target>/tools/rubric_check.py` runs on a sample criteria.json and exits 0. Assert the goal-opus skill dir is a reparse point/junction (`fsutil reparsepoint query <path>` exit 0, or PowerShell `(Get-Item <path>).LinkType -eq 'Junction'`).",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - payload + agents + rubric_check + schema-versioned STATE.md present; rubric_check exit 0 (and correctly rejects an invalid sample); skill dir junction confirmed 3 ways (isjunction, LinkType, fsutil).",
+      "history": [{ "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json (junction via os.path.isjunction + Get-Item LinkType + fsutil)" }]
+    },
+    {
+      "id": "CP5",
+      "statement": "Copy fallback is PROVEN (U24 + P0 gate): when junction creation is forced unavailable, `init` still SUCCEEDS via copy, and the installed skill is a real non-junction copy with full content (not a broken/empty stub, not a hard failure).",
+      "verify": "Set the documented force-fallback switch (e.g. env `AGENTIC_OS_NO_JUNCTION=1`) and run `init` into a second fresh git target; assert exit 0 AND the goal-opus skill dir is NOT a reparse point (`fsutil reparsepoint query` non-zero / LinkType not Junction) AND its SKILL.md content is identical to the framework source (diff or hash match). The fallback must never leave a dangling link or empty dir.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - AGENTIC_OS_NO_JUNCTION=1 init exit 0; skill dir NOT a reparse point; diff -r clean vs source, SKILL.md sha256 match (890d2c33).",
+      "history": [{ "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json (content-complete copy, not a stub; exit 0 not hard-error)" }]
+    },
+    {
+      "id": "CP6",
+      "statement": "Uninstall round-trips with no residue (P0 core gate / C11): after init then uninstall, the target has NO residual framework files or dangling junctions, and the target's pre-existing user files are untouched.",
+      "verify": "In a fresh git target, write a sentinel user file `KEEP.txt` with known content and record `git status --porcelain` + a file listing. Run `init` (assert framework present), then `uninstall`. Assert: the .claude/ framework payload, tools/rubric_check.py, and the seeded STATE.md are gone with no dangling reparse points; `KEEP.txt` still exists with identical content; and the target's tracked/untracked file set matches the pre-init snapshot (compare listings / `git status --porcelain`).",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - post-uninstall target = [.git, KEEP.txt]; zero dangling junctions (os.walk); KEEP.txt sha256 unchanged; file set == pre-init; verified for BOTH junction and copy installs; canonical payload source intact after cycles.",
+      "history": [{ "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json (round-trip clean for junction and copy; junction removal did not follow the link)" }]
+    },
+    {
+      "id": "CP7",
+      "statement": "Upgrade runs a NON-DESTRUCTIVE schema migration (U8, U26): `upgrade` against an old-schema STATE.md bumps its schema-version and adds/migrates required sections WITHOUT losing existing content.",
+      "verify": "In an installed target, edit STATE.md to an old schema: set the schema-version field to an older value, delete one required section, and add a sentinel memory line `LESSON-SENTINEL-P0`. Run `upgrade`. Assert: the schema-version field is bumped to the framework's current value, the deleted required section is restored/present, AND `LESSON-SENTINEL-P0` still appears verbatim (no data loss). Read STATE.md before and after.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - upgrade 0->1, '## Verified facts' restored, LESSON-SENTINEL-P0 preserved verbatim; migrate_state_text is add-only.",
+      "history": [{ "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json (sentinel survived byte-for-byte; version marker actually changed)" }]
+    },
+    {
+      "id": "CP8",
+      "statement": "Bootstrap preflight (U1) + config precedence (U25): `init` runs a toolchain preflight that reports git and python availability (and warns that newly-scaffolded agents need a fresh session to register), and the framework documents user-level vs project-level config precedence.",
+      "verify": "Run `init` (or a `--preflight`/dry-run mode) and assert its output reports the presence/absence of git and python AND includes a note that a fresh Claude Code session is required for scaffolded .claude/agents to become spawnable. Then assert a shipped doc (README or docs/INSTALL.md in the target) contains a section stating the precedence rule (project-level `.claude/` overrides user-level `~/.claude/`), consistent with Claude Code docs.",
+      "status": "passing",
+      "evidence": "reports/iter-1.json - --dry-run reports git+python versions and the fresh-session note, makes zero fs changes; docs/INSTALL.md '## User-level vs project-level config precedence' states project overrides user (README too).",
+      "history": [{ "iteration": 1, "flip": "failing->passing", "evidence": "reports/iter-1.json (preflight made no fs changes; precedence is a stated doc section)" }]
+    }
+  ],
+  "banned_outcomes": [
+    {
+      "id": "BP1",
+      "statement": "Product code or build artifacts land in the agent-home repo (B1: home != build target).",
+      "verify": "`git -C D:\\horil\\agent status --porcelain` shows only system/memory/evidence paths (goals/, STATE.md, and at most .claude/skills/goal-opus/SKILL.md from write-back). No agentic-os product source (CLI scripts, framework payload) appears in the home; all product code is under D:\\horil\\agentic-os.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - home status shows only goals/2026-07-12-p0-bootstrap-install/; product is a separate git repo D:/horil/agentic-os."
+    },
+    {
+      "id": "BP2",
+      "statement": "Uninstall leaves residue: any framework file or dangling junction remains in the target after `uninstall`, OR uninstall deletes/corrupts a pre-existing user file.",
+      "verify": "See CP6: post-uninstall the target contains zero framework files and zero dangling reparse points, and every pre-existing user file (KEEP.txt) is intact.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - CP6 clean for junction and copy installs; KEEP.txt intact."
+    },
+    {
+      "id": "BP3",
+      "statement": "The copy fallback silently fails: with junctions forced unavailable, `init` hard-errors or installs an empty/dangling skill dir instead of a full copy.",
+      "verify": "See CP5: forced-fallback init exits 0 and installs a real, content-complete, non-junction copy.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - CP5 forced-fallback exit 0, content-complete copy."
+    },
+    {
+      "id": "BP4",
+      "statement": "Docs or code present the Default-FAIL rubric/gate as a security or correctness GUARANTEE (B5).",
+      "verify": "grep the target's shipped docs/code for claims that the gate guarantees security/correctness -> none. Where the gate is described it is framed as an anti-drift guardrail (prompt-level), per PRD B5.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - gate framed as anti-drift guardrail, explicitly 'NOT a security or correctness guarantee' (README, INSTALL.md, STATE.template.md); no positive-guarantee framing found."
+    },
+    {
+      "id": "BP5",
+      "statement": "Upgrade is destructive: the schema migration drops or overwrites existing memory content.",
+      "verify": "See CP7: after `upgrade`, the sentinel memory line survives verbatim and no pre-existing section content is lost.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - CP7 add-only migration; sentinel survived."
+    },
+    {
+      "id": "BP6",
+      "statement": "The maker edited or deleted criteria.json, or declared the goal done itself.",
+      "verify": "criteria.json is byte-identical to the orchestrator-signed version except for orchestrator-written status/history/evidence flips; the maker's report never sets status=success.",
+      "triggered": false,
+      "evidence": "reports/iter-1.json - verifier found all criteria still status=failing/evidence=null at grade time; no maker-authored success flip. (Orchestrator wrote these passing flips in Phase 4.)"
+    }
+  ]
+}

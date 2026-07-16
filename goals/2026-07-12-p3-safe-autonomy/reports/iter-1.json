@@ -1,0 +1,31 @@
+{
+  "iteration": 1,
+  "criteria": [
+    { "id": "SP1", "verdict": "pass",
+      "evidence": "Repo t1: recorded PRE=e436068 before goal. run (fixture [{id:A,outcome:success,iterations:1,changed:true}]). undo-log.json landings[-1].pre_change_sha == e436068 (recorded at land time, parent of checkpoint b711111). `undo` -> 'restored HEAD to e436068'; git rev-parse HEAD after == e436068. reflog shows b711111 still recoverable (non-destructive reset). run-log 'undo' restored_to=e436068.",
+      "refutation_attempted": "Recorded pre-goal SHA independently; checked the undo pointer was captured at land time (not fabricated post-hoc); confirmed non-destructive (undone commit present in reflog)." },
+    { "id": "SP2", "verdict": "pass",
+      "evidence": "Repo t2, gamed_pass:true (success + invalid evidence): run-log land_gate {decision:flag, flag:evidence-missing}; session state=flagged; goal state=flagged, clean_success=False (NOT a clean success). Change still committed (checkpoint 0a3f3a8) so reversible; `undo` restored HEAD to pre-change SHA fbdd270.",
+      "refutation_attempted": "Tried to see the gamed pass recorded as clean success — it was not (flagged, clean_success=False); confirmed it is flagged AND reversible (not silently dropped, not un-revertable)." },
+    { "id": "SP3", "verdict": "pass",
+      "evidence": "ENABLED (--approve-before-land): HEAD == PRE (no checkpoint), goal state=held, awaiting_approval=True, pending-approval.json written, land_gate decision=hold, NO undo-log. DISABLED (default): goal state=success, landed=True, undo pointer==PRE, checkpoint 1dba08e present. `approve` then landed the held change (commit 5a3a881) + recorded undo pointer, pending stack emptied.",
+      "refutation_attempted": "Checked the enabled path created no checkpoint, did not move HEAD, wrote no undo pointer; disabled path recorded an undo pointer == independently-recorded PRE." },
+    { "id": "SP4", "verdict": "pass",
+      "evidence": "Repo t4, outcome:decline: run-log 'decline' {disposition:fallback-human-escalation, routed_to:fallback/human, retried:False, is_error:False}. Exactly one goal_start (count=1) and one iteration (verdict decline) — identical request NOT re-issued. goal_end state=declined (distinct terminal). No budget_abort/refusal/crashed/error event.",
+      "refutation_attempted": "Looked for a duplicate maker/iteration after the decline (a retry) and any error/abort framing — neither present; decline is a distinct terminal, not an error." },
+    { "id": "SP5", "verdict": "pass",
+      "evidence": "(a) payload/.claude/agents/goal-verifier.md line 5: 'tools: Read, Glob, Grep, Bash' - no Write/Edit. (b) '--dangerously-skip-permissions' appears only inside _claude_permission_flags (cli line 756), gated by AGENTIC_OS_DANGEROUSLY_SKIP_PERMISSIONS; invocation (line 1117) uses *_claude_permission_flags(); env unset -> [], env=1 -> ['--dangerously-skip-permissions'] (not unconditional). (c) docs/SAFE-AUTONOMY.md 'Caveat: prefix-based deny rules are BYPASSABLE' (lines 117-127).",
+      "refutation_attempted": "Grepped whole target for a second unconditional occurrence of the dangerous flag (none); executed the helper to prove default returns no flag; checked verifier grants no mutation tools." }
+  ],
+  "banned_outcomes": [
+    { "id": "BP1", "triggered": false, "evidence": "`git -C D:/horil/agent status --porcelain` shows only '?? goals/2026-07-12-p3-safe-autonomy/'. No agentic-os product source (cli/, payload, *.py) in the home; all product under D:/horil/agentic-os." },
+    { "id": "BP2", "triggered": false, "evidence": "SP1 (clean success) and SP2 (gamed pass) both recorded an undo pointer == independently-recorded pre-change SHA and were reverted by undo. No landed change (incl. the flagged gamed pass) lacks a revert path." },
+    { "id": "BP3", "triggered": false, "evidence": "SP4: decline retried:False, is_error:False; distinct 'declined' terminal; exactly one goal_start/iteration; no duplicate request, no budget_abort/refusal/error event." },
+    { "id": "BP4", "triggered": false, "evidence": "SAFE-AUTONOMY.md ('Guardrails, not guarantees ... Neither is a security or correctness boundary - both are gameable') + cli lines 536-537 ('NOT security or correctness guarantees'). Both gate AND land-gate framed as anti-drift guardrails paired with undo; no security/correctness-guarantee claim." },
+    { "id": "BP5", "triggered": false, "evidence": "criteria.json: status='in_progress', all 5 criteria failing, no evidence set; rubric_check exit 0; no maker success-flip; orchestrator-signed template unmodified." },
+    { "id": "BP6", "triggered": false, "evidence": "See SP5: no unconditional --dangerously-skip-permissions (env-gated, default []); vendored goal-verifier declares only Read/Glob/Grep/Bash." },
+    { "id": "BP7", "triggered": false, "evidence": "Repo t7: after landing, dirtied tree with a tracked edit (product.txt) + an untracked user file (user_new.txt). `undo` (no --force) REFUSED (exit 1) listing 'M product.txt' + '?? user_new.txt'; product.txt still 'USER EDIT DO NOT LOSE', user_new.txt present, HEAD unchanged. .agentic-os/ churn correctly excluded from the safety block (undo neither blind-destructive nor over-refusing)." }
+  ],
+  "overall": "PASS",
+  "diff_for_maker": []
+}
