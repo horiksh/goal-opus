@@ -111,6 +111,13 @@
   PRD S1. Known tension (accepted for v1): the vendored goal-opus copy can drift from
   the home's self-editing skill; a home→framework sync mechanism is deferred to a later
   phase, not P0. User-signed both decisions at Phase 0.
+- **D10** [2026-07-16] Home run-evidence lands on `main`; PR branches are short-lived review
+  checkpoints, not parallel work lines. Forced by a real STATE.md fork (U2 on `main` vs P0–U1 on
+  `prd/agentic-os-research`), reconciled by merging `main` into the branch — both histories kept,
+  interleaved in date order — then landing PR #1 as a MERGE commit (squash rejected: the per-run
+  commit history IS the project's evidence trail). Go-forward: write-backs commit to `main`; a PR
+  branch, if opened, is merged back promptly and never accrues STATE.md entries in parallel with
+  `main`. (`private-history` stays the separate local-only full-history line — never pushed.)
 
 ## Open failures
 _(none — the abort-probe entry closed 2026-07-07: abort path verified and reported;
@@ -210,6 +217,15 @@ workdir `goals/2026-07-07-abort-probe/` retained as evidence)_
   lens even poisoned a COPY of `app.css` to prove the new hardcode-guard actually fires. Unanimous
   PASS across diverse lenses is higher-confidence than one verifier, and the independent second
   capture guards against a single flaky capture. Cheap and worth it on visual/irreversible slices.
+- [2026-07-16] **Home run-evidence lands on MAIN; PR branches are review checkpoints, never
+  long-lived work lines.** A second session landing evidence on `main` while a PR branch carries
+  the work forks STATE.md — this happened: U2-living-loop landed on `main` while P0–U1 (the
+  agentic-os engine + first UI slices) sat on `prd/agentic-os-research`, so the project memory
+  diverged and had to be reconciled by merging `main` INTO the branch (keeping both sides,
+  interleaved in date order — nothing reordered or lost) before PR #1 could land as a merge
+  commit. RULE: commit `/goal-opus` write-backs on `main`; open a PR branch only as a short-lived
+  review checkpoint and merge it back promptly (a real merge commit — the per-run history is the
+  evidence trail), never letting two lines both accrue STATE.md entries in parallel.
 
 ## Last session
 - [2026-07-07] Scaffolded the /goal-opus system and ran E2E verification. Run 1
