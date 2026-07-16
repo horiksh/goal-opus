@@ -282,6 +282,15 @@ a reviewable diff. Do not prune inline during a goal run.
   (5 criteria incl. the three lens fixtures under `fixtures/`, 3 banned outcomes).
   Passed in 1 iteration. The fixtures double as the lens's permanent regression set:
   after any future edit to the lens text, re-classify all three.
+- [2026-07-16] u2-living-loop — `goals/2026-07-16-u2-living-loop/criteria.json`
+  (7 criteria — C4/C8/C10/U2-LOOP/U2-FR/C15/C12 — + BV1–BV16 folded verbatim + 6 process
+  guards BX1–BX6; target `D:\horil\agentic-os`). Passed in 1 iteration. The first
+  **vision-verify slice with REAL motion**: the regression case exercises the frozen
+  two-frame (before/after) temporal procedure end-to-end — the verifier judged the
+  motion-budget/fake-fill/ambient BVs (BV2/BV4/BV13) from `loop-stage-before/after` +
+  `ring-before/after` frame-pairs, not stills, and cleared all 16 BVs by LOOKING. Re-run
+  shape for any future UI slice that adds motion: capture frame-pairs, don't let a
+  temporal claim rest on a single still (BX5).
 
 ## Run log
 
@@ -293,3 +302,4 @@ a reviewable diff. Do not prune inline during a goal run.
 | 2026-07-07 | rubric-check | 1 | success (registered agents) |
 | 2026-07-08 | decision-ladder | 1 | success (D8 Goal 1) |
 | 2026-07-08 | retrieval-invariant | 1 | success (D8 Goal 3; lens + counter-guard live) |
+| 2026-07-16 | u2-living-loop | 1 | success (UI slice U2; vision-verify + frame-pairs) |
